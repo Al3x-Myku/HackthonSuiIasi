@@ -12,39 +12,64 @@ const ProfilePage: React.FC = () => {
         {
             owner: account?.address || '',
             filter: { StructType: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::MediaProof' },
-            options: { showContent: true, showDisplay: true },
+            options: { showContent: true, showDisplay: true, showType: true },
         },
         { enabled: !!account }
     );
 
-    const items = ownedObjects?.data?.map((obj: any) => {
-        const content = obj.data?.content?.fields;
-        if (!content) return null;
-        return {
-            id: obj.data?.objectId,
-            type: 'photo',
-            src: `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${content.blob_id}`,
-            title: content.description || 'Untitled',
-            user: 'You',
-            verified: true,
-            timestamp: content.timestamp
-        };
-    }).filter(Boolean) || [];
+    const { data: oldOwnedObjects } = useSuiClientQuery(
+        'getOwnedObjects',
+        {
+            owner: account?.address || '',
+            filter: { StructType: '0x47900a725d9aa848db64b588d1dc4ba3ecc5558f105b1c8f346b35cb2a3cd62b::truth_lens::MediaProof' },
+            options: { showContent: true, showDisplay: true, showType: true },
+        },
+        { enabled: !!account }
+    );
+
+    const processItems = (data: any[]) => {
+        return data?.map((obj: any) => {
+            const content = obj.data?.content?.fields;
+            if (!content) return null;
+            return {
+                id: obj.data?.objectId,
+                type: 'photo',
+                src: `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${content.blob_id}`,
+                title: content.description || 'Untitled',
+                user: 'You',
+                verified: true,
+                timestamp: content.timestamp,
+                objectType: obj.data?.type
+            };
+        }).filter(Boolean) || [];
+    };
+
+    const items = [
+        ...processItems(ownedObjects?.data || []),
+        ...processItems(oldOwnedObjects?.data || [])
+    ];
 
     const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
 
-    const handleBurn = (objectId: string) => {
+    const handleBurn = (item: any) => {
         const tx = new Transaction();
-        tx.moveCall({
-            target: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::burn',
-            arguments: [tx.object(objectId)],
-        });
+
+        if (item.objectType.includes('0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7')) {
+            // New contract: Burn it
+            tx.moveCall({
+                target: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::burn',
+                arguments: [tx.object(item.id)],
+            });
+        } else {
+            // Old contract: Transfer to 0x0 (Burn address)
+            tx.transferObjects([tx.object(item.id)], '0x0000000000000000000000000000000000000000000000000000000000000000');
+        }
 
         signAndExecuteTransaction({
             transaction: tx,
         }, {
             onSuccess: () => {
-                console.log('Burned successfully');
+                console.log('Burned/Deleted successfully');
                 window.location.reload();
             },
             onError: (err) => {
@@ -121,7 +146,7 @@ const ProfilePage: React.FC = () => {
                                             <button
                                                 onClick={(e) => {
                                                     e.stopPropagation();
-                                                    handleBurn(item.id);
+                                                    handleBurn(item);
                                                 }}
                                                 className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
                                             >
