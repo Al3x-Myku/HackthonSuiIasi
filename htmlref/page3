@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>TruthLens - Proof Detail View</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect" />
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Noto+Sans:wght@300;400;500;600;700&amp;family=Roboto+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Material Symbols -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <!-- Tailwind Config -->
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1754cf",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111722",
+                        "card-dark": "#1a2332",
+                        "glass-border": "rgba(255, 255, 255, 0.08)",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                        "mono": ["Roboto Mono", "monospace"],
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+    <style>
+        /* Custom Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(26, 35, 50, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .glass-panel-heavy {
+            background: rgba(17, 23, 34, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Tech decorative elements */
+        .tech-corner-tl {
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            width: 16px;
+            height: 16px;
+            border-top: 2px solid #1754cf;
+            border-left: 2px solid #1754cf;
+            border-top-left-radius: 6px;
+        }
+
+        .tech-corner-br {
+            position: absolute;
+            bottom: -1px;
+            right: -1px;
+            width: 16px;
+            height: 16px;
+            border-bottom: 2px solid #1754cf;
+            border-right: 2px solid #1754cf;
+            border-bottom-right-radius: 6px;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased overflow-x-hidden selection:bg-primary selection:text-white">
+    <div class="relative flex h-auto min-h-screen w-full flex-col">
+        <!-- Navbar -->
+        <header
+            class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#243047] bg-[#111722]/90 backdrop-blur-md px-4 sm:px-10 py-3">
+            <div class="flex items-center gap-8">
+                <div class="flex items-center gap-4 text-white">
+                    <div class="size-8 text-primary">
+                        <svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+                            <path
+                                d="M24 4C12.95 4 4 12.95 4 24C4 35.05 12.95 44 24 44C35.05 44 44 35.05 44 24C44 12.95 35.05 4 24 4ZM24 40C15.16 40 8 32.84 8 24C8 15.16 15.16 8 24 8C32.84 8 40 15.16 40 24C40 32.84 32.84 40 24 40Z"
+                                fill="currentColor" fill-opacity="0.3"></path>
+                            <path
+                                d="M24 14C18.48 14 14 18.48 14 24C14 29.52 18.48 34 24 34C29.52 34 34 29.52 34 24C34 18.48 29.52 14 24 14ZM24 30C20.69 30 18 27.31 18 24C18 20.69 20.69 18 24 18C27.31 18 30 20.69 30 24C30 27.31 27.31 30 24 30Z"
+                                fill="currentColor"></path>
+                        </svg>
+                    </div>
+                    <h2 class="text-white text-lg font-bold leading-tight tracking-tight">TruthLens</h2>
+                </div>
+                <nav class="hidden md:flex items-center gap-9">
+                    <a class="text-[#93a5c8] hover:text-white transition-colors text-sm font-medium leading-normal"
+                        href="#">Dashboard</a>
+                    <a class="text-white text-sm font-medium leading-normal" href="#">Verify</a>
+                    <a class="text-[#93a5c8] hover:text-white transition-colors text-sm font-medium leading-normal"
+                        href="#">My Proofs</a>
+                    <a class="text-[#93a5c8] hover:text-white transition-colors text-sm font-medium leading-normal"
+                        href="#">Settings</a>
+                </nav>
+            </div>
+            <div class="flex flex-1 justify-end gap-6 items-center">
+                <label class="hidden sm:flex flex-col min-w-40 !h-10 max-w-64 group">
+                    <div
+                        class="flex w-full flex-1 items-stretch rounded-lg h-full glass-panel group-focus-within:border-primary/50 transition-colors">
+                        <div
+                            class="text-[#93a5c8] flex border-none items-center justify-center pl-3 rounded-l-lg border-r-0">
+                            <span class="material-symbols-outlined text-[20px]">search</span>
+                        </div>
+                        <input
+                            class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-white focus:outline-0 focus:ring-0 border-none bg-transparent focus:border-none h-full placeholder:text-[#93a5c8] px-3 rounded-l-none border-l-0 pl-2 text-sm font-normal leading-normal"
+                            placeholder="Search Hash or ID" value="" />
+                    </div>
+                </label>
+                <div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 ring-2 ring-white/10"
+                    data-alt="User profile avatar showing a silhouette"
+                    style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBdxIrYwLorfG-p7Snk8pqTQBScxg1n819Ym7kETUZu8cD52oIQ8Kx0AFY_udyExAA6hucj199R38qpgKna72NCSLquw3Whfqju9zlNqvd27nobl2u3ZJiVk109uudsrIwx9PZP_j66Zc3TzTGo2b9y-jQd5jzwNYGAKtEHa2gNOaZFUtk4DXQg3I85G6qz4WlpCT2A5REkmjZbW80uSGqsgtqNMq-GSHlmG-k-CfQ8LKsIBSgsvFsr5XOA_4BOuXsFmbDK7TjHlX9b");'>
+                </div>
+            </div>
+        </header>
+        <div class="layout-container flex h-full grow flex-col w-full max-w-[1440px] mx-auto">
+            <div class="px-4 sm:px-10 lg:px-20 xl:px-40 flex flex-1 justify-center py-8">
+                <div class="layout-content-container flex flex-col w-full flex-1 gap-8">
+                    <!-- Breadcrumbs & Heading -->
+                    <div class="flex flex-col gap-1">
+                        <div class="flex flex-wrap gap-2 items-center text-sm">
+                            <a class="text-[#93a5c8] hover:text-white transition-colors" href="#">Home</a>
+                            <span class="text-[#64748b]">/</span>
+                            <a class="text-[#93a5c8] hover:text-white transition-colors" href="#">Proofs</a>
+                            <span class="text-[#64748b]">/</span>
+                            <span class="text-primary font-medium">Proof #8492-AX</span>
+                        </div>
+                        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mt-4">
+                            <div>
+                                <h1 class="text-white text-3xl md:text-4xl font-bold leading-tight tracking-tight">Proof
+                                    #8492-AX</h1>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <span
+                                        class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-xs font-medium text-primary ring-1 ring-inset ring-primary/20">
+                                        <span class="material-symbols-outlined text-[14px] mr-1">verified</span>
+                                        On-Chain Verified
+                                    </span>
+                                    <span class="text-[#93a5c8] text-sm">Created Oct 27, 2023 at 14:30 UTC</span>
+                                </div>
+                            </div>
+                            <div class="flex gap-3">
+                                <button
+                                    class="flex items-center gap-2 cursor-pointer rounded-lg h-10 px-4 bg-[#243047] hover:bg-[#2d3b55] text-white text-sm font-bold transition-colors">
+                                    <span class="material-symbols-outlined text-[18px]">share</span>
+                                    Share
+                                </button>
+                                <button
+                                    class="flex items-center gap-2 cursor-pointer rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-bold transition-colors shadow-[0_0_15px_rgba(23,84,207,0.3)]">
+                                    <span class="material-symbols-outlined text-[18px]">download</span>
+                                    Export Certificate
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Main Viewer Section -->
+                    <div class="relative w-full rounded-xl overflow-hidden glass-panel group shadow-2xl">
+                        <!-- Tech overlay corners -->
+                        <div class="absolute top-4 left-4 size-4 border-t-2 border-l-2 border-primary/50 z-20"></div>
+                        <div class="absolute top-4 right-4 size-4 border-t-2 border-r-2 border-primary/50 z-20"></div>
+                        <div class="absolute bottom-4 left-4 size-4 border-b-2 border-l-2 border-primary/50 z-20"></div>
+                        <div class="absolute bottom-4 right-4 size-4 border-b-2 border-r-2 border-primary/50 z-20">
+                        </div>
+                        <!-- Badge -->
+                        <div
+                            class="absolute top-6 left-6 z-20 flex items-center gap-2 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-white/10 shadow-lg animate-[pulse_3s_ease-in-out_infinite]">
+                            <span class="material-symbols-outlined text-green-400 text-[18px]">check_circle</span>
+                            <span class="text-xs font-bold tracking-wide uppercase">Authenticated on Sui Network</span>
+                        </div>
+                        <!-- Image -->
+                        <div class="w-full aspect-video md:aspect-[21/9] lg:h-[500px] bg-center bg-cover bg-no-repeat relative"
+                            data-alt="Journalistic photo of a protest in a city street during daytime"
+                            style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCVxQAo2r2vE3aZq7Co9G45LRJWmEr14zqaf2Fzyf_ydqFXYzzMD9jSfPAefCNNyf0HvElxdA1u0t8ZjsOy5ESt_rtpTKjxjLQ_LdcB1Tv-PPdldW21P2_Xiq82eKafGHgOHWniCbbqKBbOUEnu83Gv1W3Zgun1Dzbz5bd3GXiyxIaLK2ulxezhrXTxq_31XMhJIuNZFQNs3BR50kep0doppLlJ2q3tRgbpsxVFCPCYYVJk77IlJmvk2Mqw7AH0z7kw4Fk1ME6sXkus");'>
+                            <div
+                                class="absolute inset-0 bg-gradient-to-t from-[#111722] via-transparent to-transparent opacity-60">
+                            </div>
+                        </div>
+                        <!-- Overlay Info Bar -->
+                        <div
+                            class="absolute bottom-0 w-full glass-panel-heavy px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+                            <div class="flex items-center gap-6 text-sm text-[#93a5c8]">
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">photo_camera</span>
+                                    <span>Canon EOS R5</span>
+                                </div>
+                                <div class="w-px h-4 bg-white/10"></div>
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">straighten</span>
+                                    <span>5472 x 3648 px</span>
+                                </div>
+                                <div class="w-px h-4 bg-white/10"></div>
+                                <div class="flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-[18px]">hard_drive</span>
+                                    <span>24.5 MB</span>
+                                </div>
+                            </div>
+                            <div
+                                class="font-mono text-xs text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">
+                                SIGNED_BY_DEVICE_KEY
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Details Grid -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <!-- Left Column: Provenance & Metadata (Span 2) -->
+                        <div class="lg:col-span-2 flex flex-col gap-6">
+                            <!-- Chain of Custody Card -->
+                            <section class="glass-panel rounded-xl p-6 relative">
+                                <div class="tech-corner-tl"></div>
+                                <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">history</span>
+                                    Chain of Custody
+                                </h3>
+                                <div class="relative pl-4 border-l border-[#243047] space-y-8 ml-2">
+                                    <!-- Event 1 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[21px] top-1 size-3 bg-[#243047] border-2 border-[#93a5c8] rounded-full">
+                                        </div>
+                                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                            <div>
+                                                <h4 class="text-white font-medium">Image Captured</h4>
+                                                <p class="text-[#93a5c8] text-sm mt-1">Original raw file created by
+                                                    trusted hardware.</p>
+                                            </div>
+                                            <div
+                                                class="font-mono text-xs text-[#93a5c8] bg-[#243047]/50 px-2 py-1 rounded">
+                                                2023-10-27 14:30:05 UTC</div>
+                                        </div>
+                                    </div>
+                                    <!-- Event 2 -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[21px] top-1 size-3 bg-[#243047] border-2 border-[#93a5c8] rounded-full">
+                                        </div>
+                                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                            <div>
+                                                <h4 class="text-white font-medium">Cryptographic Signing</h4>
+                                                <p class="text-[#93a5c8] text-sm mt-1">Signed with device-unique private
+                                                    key (C2PA standard).</p>
+                                            </div>
+                                            <div
+                                                class="font-mono text-xs text-[#93a5c8] bg-[#243047]/50 px-2 py-1 rounded">
+                                                2023-10-27 14:30:06 UTC</div>
+                                        </div>
+                                    </div>
+                                    <!-- Event 3 (Active) -->
+                                    <div class="relative">
+                                        <div
+                                            class="absolute -left-[21px] top-1 size-3 bg-primary border-2 border-primary shadow-[0_0_10px_#1754cf] rounded-full animate-pulse">
+                                        </div>
+                                        <div class="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+                                            <div>
+                                                <h4 class="text-white font-medium flex items-center gap-2">
+                                                    Authenticated on Sui Network
+                                                    <span
+                                                        class="material-symbols-outlined text-green-400 text-[16px]">verified_user</span>
+                                                </h4>
+                                                <p class="text-[#93a5c8] text-sm mt-1">Proof anchored to block <span
+                                                        class="text-white font-mono">#12,402,110</span>.</p>
+                                            </div>
+                                            <div
+                                                class="font-mono text-xs text-primary bg-primary/10 border border-primary/20 px-2 py-1 rounded">
+                                                2023-10-27 14:31:12 UTC</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </section>
+                            <!-- Metadata Grid -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <!-- Location -->
+                                <div class="glass-panel rounded-xl p-5 flex flex-col gap-4">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="text-white font-bold flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-[#93a5c8]">location_on</span>
+                                            Location Data
+                                        </h4>
+                                        <span
+                                            class="text-xs text-[#93a5c8] border border-[#243047] px-2 py-1 rounded">GPS
+                                            Fixed</span>
+                                    </div>
+                                    <div
+                                        class="h-32 w-full rounded-lg overflow-hidden relative grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-300">
+                                        <img class="w-full h-full object-cover"
+                                            data-alt="Dark stylized map showing city streets of Los Angeles"
+                                            data-location="Los Angeles, CA"
+                                            src="https://lh3.googleusercontent.com/aida-public/AB6AXuCcrrfuE1s1SG6cIVYBM1BLNtLTVJxvmHCMyGsD2A7CwZgBszNS8igYXEn_zi1rejmw32cx_JDb1CmosZyS5pUIqiJ3GFFGPCodhdpc_s2hXaHVCCYxG78qgMcXWeWf1W__yW3kVfJFfUr4sbKAl2t0ak242BG4kjaEPowYANIRDmyMZtGXHUweWoWhUtC0fKzM1ZlI1sJbZ50JznFMqJzypuOp1iuR2OsJB2U6jEdHTqyROrZXwvs1oJUppPq95m11IE30wXox_fkx" />
+                                        <div class="absolute inset-0 flex items-center justify-center">
+                                            <div
+                                                class="size-8 bg-primary/20 rounded-full flex items-center justify-center ring-1 ring-primary">
+                                                <div class="size-2 bg-primary rounded-full"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-between text-sm font-mono text-[#93a5c8]">
+                                        <span>LAT: 34.0522° N</span>
+                                        <span>LON: 118.2437° W</span>
+                                    </div>
+                                </div>
+                                <!-- Environment / Camera -->
+                                <div class="glass-panel rounded-xl p-5 flex flex-col gap-4">
+                                    <div class="flex justify-between items-center">
+                                        <h4 class="text-white font-bold flex items-center gap-2">
+                                            <span class="material-symbols-outlined text-[#93a5c8]">shutter_speed</span>
+                                            Capture Settings
+                                        </h4>
+                                    </div>
+                                    <div class="grid grid-cols-2 gap-3 mt-1">
+                                        <div class="bg-[#243047]/30 p-3 rounded-lg border border-white/5">
+                                            <p class="text-xs text-[#93a5c8] uppercase tracking-wider mb-1">Aperture</p>
+                                            <p class="text-white font-mono text-lg">f/2.8</p>
+                                        </div>
+                                        <div class="bg-[#243047]/30 p-3 rounded-lg border border-white/5">
+                                            <p class="text-xs text-[#93a5c8] uppercase tracking-wider mb-1">ISO</p>
+                                            <p class="text-white font-mono text-lg">400</p>
+                                        </div>
+                                        <div class="bg-[#243047]/30 p-3 rounded-lg border border-white/5">
+                                            <p class="text-xs text-[#93a5c8] uppercase tracking-wider mb-1">Shutter</p>
+                                            <p class="text-white font-mono text-lg">1/200s</p>
+                                        </div>
+                                        <div class="bg-[#243047]/30 p-3 rounded-lg border border-white/5">
+                                            <p class="text-xs text-[#93a5c8] uppercase tracking-wider mb-1">Focal Len
+                                            </p>
+                                            <p class="text-white font-mono text-lg">24mm</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Right Column: Tech Specs (Span 1) -->
+                        <div class="flex flex-col gap-6">
+                            <!-- Tech Details Card -->
+                            <section class="glass-panel rounded-xl p-6 h-full relative overflow-hidden">
+                                <div class="tech-corner-br"></div>
+                                <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
+                                    <span class="material-symbols-outlined text-primary">terminal</span>
+                                    Tech Details
+                                </h3>
+                                <div class="flex flex-col gap-6">
+                                    <!-- Hash -->
+                                    <div class="group">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <label
+                                                class="text-xs font-semibold text-[#93a5c8] uppercase tracking-wider">SHA-256
+                                                Hash</label>
+                                            <button class="text-[#93a5c8] hover:text-white transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                            </button>
+                                        </div>
+                                        <div
+                                            class="bg-[#111722] rounded-lg p-3 border border-white/5 font-mono text-xs text-[#93a5c8] break-all group-hover:border-primary/30 transition-colors">
+                                            7f83b1657ff1fc53b92dc18148a1d65dfc2d4b1fa3d677284addd200126d90d2
+                                        </div>
+                                    </div>
+                                    <!-- Blob ID -->
+                                    <div class="group">
+                                        <div class="flex justify-between items-center mb-2">
+                                            <label
+                                                class="text-xs font-semibold text-[#93a5c8] uppercase tracking-wider">Object
+                                                ID</label>
+                                            <button class="text-[#93a5c8] hover:text-white transition-colors">
+                                                <span class="material-symbols-outlined text-[16px]">content_copy</span>
+                                            </button>
+                                        </div>
+                                        <div
+                                            class="bg-[#111722] rounded-lg p-3 border border-white/5 font-mono text-xs text-[#93a5c8] group-hover:border-primary/30 transition-colors">
+                                            0x45d2...8a91::proof::Photo
+                                        </div>
+                                    </div>
+                                    <!-- Verification Links -->
+                                    <div class="mt-4 pt-6 border-t border-white/10 flex flex-col gap-3">
+                                        <a class="flex items-center justify-between p-3 rounded-lg bg-[#243047]/30 hover:bg-[#243047]/60 transition-colors border border-white/5 group"
+                                            href="#">
+                                            <span class="text-sm text-white font-medium flex items-center gap-2">
+                                                <span
+                                                    class="material-symbols-outlined text-primary text-[18px]">open_in_new</span>
+                                                View on Sui Explorer
+                                            </span>
+                                            <span
+                                                class="material-symbols-outlined text-[#93a5c8] group-hover:translate-x-1 transition-transform text-[16px]">arrow_forward</span>
+                                        </a>
+                                        <a class="flex items-center justify-between p-3 rounded-lg bg-[#243047]/30 hover:bg-[#243047]/60 transition-colors border border-white/5 group"
+                                            href="#">
+                                            <span class="text-sm text-white font-medium flex items-center gap-2">
+                                                <span
+                                                    class="material-symbols-outlined text-primary text-[18px]">policy</span>
+                                                Validator Signature
+                                            </span>
+                                            <span
+                                                class="material-symbols-outlined text-[#93a5c8] group-hover:translate-x-1 transition-transform text-[16px]">arrow_forward</span>
+                                        </a>
+                                    </div>
+                                </div>
+                            </section>
+                            <!-- Mini Help Card -->
+                            <div
+                                class="rounded-xl p-5 bg-gradient-to-br from-primary/20 to-transparent border border-primary/20 flex gap-4 items-start">
+                                <span class="material-symbols-outlined text-primary mt-1">info</span>
+                                <div>
+                                    <h5 class="text-white font-bold text-sm">Verification Guarantee</h5>
+                                    <p class="text-[#93a5c8] text-xs mt-1 leading-relaxed">
+                                        This media file has been cryptographically signed at the point of capture and
+                                        immutably recorded on the Sui blockchain.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>

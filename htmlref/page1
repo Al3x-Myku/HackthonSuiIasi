@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>TruthLens - Camera View</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1754cf",
+                        "primary-hover": "#1342a6",
+                        "accent-green": "#00ff94",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#0a0f1c",
+                        "surface-dark": "#111722",
+                        "border-dark": "#243047",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+    <style>
+        .glass-panel {
+            background: rgba(17, 23, 34, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .text-glow {
+            text-shadow: 0 0 10px rgba(23, 84, 207, 0.5);
+        }
+
+        .scan-line {
+            width: 100%;
+            height: 2px;
+            background: rgba(0, 255, 148, 0.5);
+            position: absolute;
+            z-index: 10;
+            animation: scan 3s linear infinite;
+            box-shadow: 0 0 4px rgba(0, 255, 148, 0.8);
+        }
+
+        @keyframes scan {
+            0% {
+                top: 0%;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                top: 100%;
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body
+    class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden h-screen flex flex-col">
+    <!-- Header -->
+    <header
+        class="h-16 shrink-0 flex items-center justify-between px-6 border-b border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark z-20">
+        <div class="flex items-center gap-3">
+            <div class="size-8 text-primary flex items-center justify-center bg-primary/10 rounded-lg">
+                <span class="material-symbols-outlined">verified_user</span>
+            </div>
+            <h1 class="text-xl font-bold tracking-tight">TruthLens</h1>
+            <span
+                class="bg-gray-200 dark:bg-border-dark text-xs px-2 py-0.5 rounded font-mono text-gray-500 dark:text-gray-400">v1.2.0</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <div
+                class="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-border-dark/50 border border-transparent dark:border-white/5">
+                <div class="size-2 rounded-full bg-accent-green animate-pulse"></div>
+                <span class="text-xs font-mono font-medium text-gray-600 dark:text-gray-300">ETH Mainnet</span>
+            </div>
+            <button
+                class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg transition-colors shadow-lg shadow-primary/20">
+                <span class="material-symbols-outlined text-[18px]">account_balance_wallet</span>
+                <span class="font-mono text-xs">0x71...3A92</span>
+            </button>
+            <button
+                class="p-2 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-white transition-colors">
+                <span class="material-symbols-outlined">settings</span>
+            </button>
+        </div>
+    </header>
+    <!-- Main Content -->
+    <main class="flex-1 flex overflow-hidden relative">
+        <!-- Sidebar (Left - Tools) -->
+        <aside
+            class="w-16 hidden md:flex flex-col items-center py-6 gap-6 border-r border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark z-10">
+            <button class="p-3 rounded-xl text-primary bg-primary/10 transition-all group relative">
+                <span class="material-symbols-outlined">photo_camera</span>
+                <span
+                    class="absolute left-full ml-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">Photo
+                    Mode</span>
+            </button>
+            <button
+                class="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group relative">
+                <span class="material-symbols-outlined">videocam</span>
+                <span
+                    class="absolute left-full ml-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">Video
+                    Mode</span>
+            </button>
+            <button
+                class="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all group relative">
+                <span class="material-symbols-outlined">qr_code_scanner</span>
+                <span
+                    class="absolute left-full ml-2 px-2 py-1 bg-black text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap z-50 pointer-events-none">Scan
+                    Asset</span>
+            </button>
+            <div class="flex-1"></div>
+            <button class="p-3 rounded-xl text-gray-400 hover:text-white hover:bg-white/5 transition-all">
+                <span class="material-symbols-outlined">help</span>
+            </button>
+        </aside>
+        <!-- Viewfinder Area -->
+        <section class="flex-1 relative bg-black flex items-center justify-center p-4 md:p-8 overflow-hidden group">
+            <!-- Background Image simulating camera feed -->
+            <div class="absolute inset-0 z-0 opacity-60">
+                <img alt="Cyberpunk city street view representing live camera feed" class="w-full h-full object-cover"
+                    data-alt="Cyberpunk city street view representing live camera feed"
+                    src="https://lh3.googleusercontent.com/aida-public/AB6AXuCRAvgWhIVtZ6wg9ZdrcYXEQCSWKDbOwrNnzdSuMC1W6TxqaC8B4rJpSLNDpVBdJZISDqLTvAEhoZLkzVS0kKWa9vzfnUbkDfJTd_iLNRWhsKKU5WS0W9kNtBHyeE4ozzaDirgYIsUC3TUuYAJWKxlCA8LNEXBjCL-F8JyFVhwDk5ceG9FDemJToGbNMTAiiC4CgKMug2qWrNUGzwNs5Fm_6pGkmuPHMnuVM1HPdxjjGiBUCwlBqQTqrbgC9MG27Y_OcfVpqs3vQWfK" />
+            </div>
+            <!-- Viewfinder UI Layer -->
+            <div
+                class="relative w-full h-full max-w-5xl aspect-video border border-white/10 rounded-2xl overflow-hidden shadow-2xl flex flex-col justify-between">
+                <!-- Corner Reticles -->
+                <div class="absolute top-4 left-4 size-8 border-l-2 border-t-2 border-white/50 rounded-tl-lg"></div>
+                <div class="absolute top-4 right-4 size-8 border-r-2 border-t-2 border-white/50 rounded-tr-lg"></div>
+                <div class="absolute bottom-4 left-4 size-8 border-l-2 border-b-2 border-white/50 rounded-bl-lg"></div>
+                <div class="absolute bottom-4 right-4 size-8 border-r-2 border-b-2 border-white/50 rounded-br-lg"></div>
+                <!-- Center Focus -->
+                <div
+                    class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-16 border border-white/30 rounded-full flex items-center justify-center">
+                    <div class="size-1 bg-accent-green/80 rounded-full"></div>
+                </div>
+                <!-- Scan Animation -->
+                <div class="scan-line"></div>
+                <!-- Top Info Bar (Inside Viewfinder) -->
+                <div class="p-6 flex justify-between items-start z-10">
+                    <div class="glass-panel px-4 py-2 rounded-lg flex items-center gap-3">
+                        <div class="size-2 rounded-full bg-red-500 animate-pulse"></div>
+                        <span class="text-xs font-bold text-white uppercase tracking-wider">Live Feed</span>
+                        <div class="h-3 w-px bg-white/20"></div>
+                        <span class="text-xs font-mono text-gray-300">1080p • 60fps</span>
+                    </div>
+                    <div class="glass-panel px-4 py-3 rounded-lg flex flex-col items-end gap-1">
+                        <div class="flex items-center gap-2 text-accent-green">
+                            <span class="material-symbols-outlined text-[16px]">fingerprint</span>
+                            <span class="text-xs font-mono font-bold tracking-widest">HASH GENERATING</span>
+                        </div>
+                        <div class="text-xs font-mono text-white/70 tracking-tight">
+                            0x8f4a...2b1c
+                        </div>
+                    </div>
+                </div>
+                <!-- Bottom Controls (Inside Viewfinder) -->
+                <div class="p-6 flex flex-col gap-4 z-10 mt-auto">
+                    <!-- Meta Data Strip -->
+                    <div class="flex flex-wrap gap-2 justify-center md:justify-start">
+                        <div class="glass-panel px-3 py-1.5 rounded flex items-center gap-2">
+                            <span class="material-symbols-outlined text-white/60 text-[14px]">public</span>
+                            <span class="text-[10px] font-mono text-gray-300">LAT: 40.7128 N</span>
+                        </div>
+                        <div class="glass-panel px-3 py-1.5 rounded flex items-center gap-2">
+                            <span class="material-symbols-outlined text-white/60 text-[14px]">schedule</span>
+                            <span class="text-[10px] font-mono text-gray-300">UTC: 14:05:22</span>
+                        </div>
+                        <div class="glass-panel px-3 py-1.5 rounded flex items-center gap-2">
+                            <span class="material-symbols-outlined text-white/60 text-[14px]">link</span>
+                            <span class="text-[10px] font-mono text-accent-green">Chain Synced</span>
+                        </div>
+                    </div>
+                    <!-- Main Action Bar -->
+                    <div class="glass-panel p-2 rounded-xl flex items-center justify-between gap-4">
+                        <!-- Left Tools -->
+                        <div class="flex items-center gap-1">
+                            <button class="p-3 rounded-lg hover:bg-white/10 text-white transition-colors">
+                                <span class="material-symbols-outlined">flash_on</span>
+                            </button>
+                            <button class="p-3 rounded-lg hover:bg-white/10 text-white transition-colors">
+                                <span class="material-symbols-outlined">grid_4x4</span>
+                            </button>
+                            <button class="p-3 rounded-lg hover:bg-white/10 text-white transition-colors">
+                                <span class="material-symbols-outlined">timer</span>
+                            </button>
+                        </div>
+                        <!-- Shutter Button -->
+                        <button
+                            class="group relative flex items-center justify-center gap-3 px-8 h-14 bg-primary hover:bg-primary-hover active:scale-95 text-white font-bold rounded-lg transition-all shadow-[0_0_20px_rgba(23,84,207,0.4)] hover:shadow-[0_0_30px_rgba(23,84,207,0.6)]">
+                            <span class="material-symbols-outlined">filter_center_focus</span>
+                            <span class="text-lg tracking-wide uppercase">Mint &amp; Capture</span>
+                            <!-- Button Glow Effect -->
+                            <div
+                                class="absolute inset-0 rounded-lg ring-2 ring-white/20 group-hover:ring-white/40 transition-all">
+                            </div>
+                        </button>
+                        <!-- Right Tools (Filters) -->
+                        <div class="flex items-center gap-1">
+                            <button
+                                class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-white/10 text-white transition-colors">
+                                <span class="text-sm font-medium">1x</span>
+                            </button>
+                            <button class="p-3 rounded-lg hover:bg-white/10 text-white transition-colors">
+                                <span class="material-symbols-outlined">tune</span>
+                            </button>
+                            <button class="p-3 rounded-lg hover:bg-white/10 text-white transition-colors">
+                                <span class="material-symbols-outlined">cameraswitch</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- Right Panel (History/Status) -->
+        <aside
+            class="w-80 hidden xl:flex flex-col border-l border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark z-10">
+            <div class="p-5 border-b border-gray-200 dark:border-border-dark">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">Recent
+                    Captures</h2>
+                <div class="space-y-3">
+                    <!-- History Item 1 -->
+                    <div
+                        class="group flex gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer transition-colors">
+                        <div class="w-16 h-12 rounded bg-gray-200 dark:bg-gray-800 overflow-hidden relative">
+                            <img alt="Abstract colorful glitch art thumbnail"
+                                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                data-alt="Abstract colorful glitch art thumbnail"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuBCbB6tttinX1cEHTVCn9fFvddTREScyVD-fhtVn-YXQ7L91bn8T_Ag1yEKK16nN5TpuGlaELA93_dlgzgfmzohTWgFtL4jTIWBc87mptd8sHyRx-tsk8twrEN_vFEDJfzgw0gl_caeDRjVVKH7NXVLRJgRYripmJCx7uaKnk-75LR0j66nxKyEl9mSbE9WjO_begzKsKlgxYA7aPJrSPw2MOUSKXarympu98vKDEDqlAdHXmEecxnbxxx1xLBwhBhtkT_lkECfGv--" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <span class="text-sm font-bold truncate text-gray-900 dark:text-white">Capture
+                                    #3921</span>
+                                <span
+                                    class="text-[10px] text-accent-green bg-accent-green/10 px-1.5 rounded">Minted</span>
+                            </div>
+                            <p class="text-[10px] font-mono text-gray-500 truncate">Hash: 0x82...91a</p>
+                            <p class="text-[10px] text-gray-400">2 mins ago</p>
+                        </div>
+                    </div>
+                    <!-- History Item 2 -->
+                    <div
+                        class="group flex gap-3 p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 cursor-pointer transition-colors">
+                        <div class="w-16 h-12 rounded bg-gray-200 dark:bg-gray-800 overflow-hidden relative">
+                            <img alt="Abstract fluid blue waves thumbnail"
+                                class="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                data-alt="Abstract fluid blue waves thumbnail"
+                                src="https://lh3.googleusercontent.com/aida-public/AB6AXuAF0rpkf7VmruAK0Jy7ZP9AJXTtrswuyCNr_KA8ksYFXQOVRTP7XqRKDuoyETJZRGy71-hA5D2WYeoPCeVlKuR95aZ7OinPht5PV3x0rObk5YsEJLIK2gNYMJWV2GiOE8i4Z07mfAHsqco7B2AQsSjGvNp4ZglTUYejvBrfivAUiwUilcRpVRfo55Sx2NVHo3oZMPMbZlEQDBP8129tysB24X8ro_QSGfXGE01z1fwgmnmYWIDoU77mlQFY9fen-1C1bNEosAqklVsj" />
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex justify-between items-center mb-0.5">
+                                <span class="text-sm font-bold truncate text-gray-900 dark:text-white">Capture
+                                    #3920</span>
+                                <span
+                                    class="text-[10px] text-accent-green bg-accent-green/10 px-1.5 rounded">Minted</span>
+                            </div>
+                            <p class="text-[10px] font-mono text-gray-500 truncate">Hash: 0x4a...b2c</p>
+                            <p class="text-[10px] text-gray-400">15 mins ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="p-5 flex-1 flex flex-col">
+                <h2 class="text-sm font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">Chain
+                    Status</h2>
+                <div class="space-y-4 font-mono text-xs">
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-white/5">
+                        <span class="text-gray-500 dark:text-gray-400">Gas Price</span>
+                        <span class="text-gray-900 dark:text-white font-bold">12 gwei</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-white/5">
+                        <span class="text-gray-500 dark:text-gray-400">Block Height</span>
+                        <span class="text-gray-900 dark:text-white font-bold">18,239,102</span>
+                    </div>
+                    <div class="flex justify-between items-center pb-2 border-b border-gray-200 dark:border-white/5">
+                        <span class="text-gray-500 dark:text-gray-400">Contract</span>
+                        <span class="text-primary truncate max-w-[100px]">0x712...992</span>
+                    </div>
+                </div>
+                <div class="mt-auto pt-6">
+                    <div class="p-4 rounded-xl bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-white/5">
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="material-symbols-outlined text-primary">verified</span>
+                            <span class="font-bold text-sm">TruthLens Protocol</span>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 leading-relaxed">
+                            Every capture is cryptographically signed and stamped with geolocation data on-chain.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+    </main>
+</body>
+
+</html>
