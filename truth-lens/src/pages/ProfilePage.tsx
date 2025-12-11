@@ -1,5 +1,6 @@
 import React from 'react';
-import { useCurrentAccount, useSuiClientQuery, ConnectButton } from '@mysten/dapp-kit';
+import { useCurrentAccount, useSuiClientQuery, ConnectButton, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { Transaction } from '@mysten/sui/transactions';
 import { useNavigate } from 'react-router-dom';
 
 const ProfilePage: React.FC = () => {
@@ -10,11 +11,47 @@ const ProfilePage: React.FC = () => {
         'getOwnedObjects',
         {
             owner: account?.address || '',
-            filter: { StructType: '0x0::provenance::MediaProof' },
+            filter: { StructType: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::MediaProof' },
             options: { showContent: true, showDisplay: true },
         },
         { enabled: !!account }
     );
+
+    const items = ownedObjects?.data?.map((obj: any) => {
+        const content = obj.data?.content?.fields;
+        if (!content) return null;
+        return {
+            id: obj.data?.objectId,
+            type: 'photo',
+            src: `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${content.blob_id}`,
+            title: content.description || 'Untitled',
+            user: 'You',
+            verified: true,
+            timestamp: content.timestamp
+        };
+    }).filter(Boolean) || [];
+
+    const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+
+    const handleBurn = (objectId: string) => {
+        const tx = new Transaction();
+        tx.moveCall({
+            target: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::burn',
+            arguments: [tx.object(objectId)],
+        });
+
+        signAndExecuteTransaction({
+            transaction: tx,
+        }, {
+            onSuccess: () => {
+                console.log('Burned successfully');
+                window.location.reload();
+            },
+            onError: (err) => {
+                console.error('Burn failed:', err);
+            }
+        });
+    };
 
     return (
         <div className="flex flex-col min-h-screen overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display">
@@ -53,7 +90,7 @@ const ProfilePage: React.FC = () => {
                     {account ? (
                         <div className="gap-6 space-y-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4">
                             {/* Placeholder for when we have real data */}
-                            {(!ownedObjects || ownedObjects.data.length === 0) && (
+                            {items.length === 0 && (
                                 <div className="col-span-full flex flex-col items-center justify-center py-20 text-[#64748b]">
                                     <span className="material-symbols-outlined text-6xl mb-4 opacity-50">image_not_supported</span>
                                     <p className="text-lg font-medium">No verified media found</p>
@@ -67,10 +104,31 @@ const ProfilePage: React.FC = () => {
                             )}
 
                             {/* Map owned objects here */}
-                            {ownedObjects?.data.map((obj) => (
-                                <div key={obj.data?.objectId} className="break-inside-avoid bg-surface-dark rounded-2xl p-4 border border-white/10">
-                                    <p className="text-white">Object ID: {obj.data?.objectId}</p>
-                                    {/* Display object content */}
+                            {items.map((item: any) => (
+                                <div key={item.id} className="group relative break-inside-avoid rounded-2xl overflow-hidden bg-surface-dark border border-[#334155]/50 hover:border-primary/50 transition-all duration-300 cursor-pointer shadow-lg shadow-black/20 hover:shadow-primary/10">
+                                    <div className="absolute top-3 right-3 z-20 bg-[#0b1221]/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 border border-verified/30">
+                                        <span className="material-symbols-outlined text-verified text-[16px]">verified</span>
+                                        <span className="text-verified text-[10px] font-bold uppercase tracking-wide">Verified</span>
+                                    </div>
+                                    <img className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500" src={item.src} alt={item.title} />
+                                    <div className="absolute inset-0 bg-gradient-to-t from-[#0b1221] via-[#0b1221]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
+                                        <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                                            <h3 className="mb-1 text-lg font-bold text-white">{item.title}</h3>
+                                            <div className="flex items-center gap-2 mb-3">
+                                                <div className="w-5 h-5 rounded-full border border-white/20 bg-gray-500"></div>
+                                                <span className="text-xs font-medium text-white/80">{item.user}</span>
+                                            </div>
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    handleBurn(item.id);
+                                                }}
+                                                className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
+                                            >
+                                                Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>

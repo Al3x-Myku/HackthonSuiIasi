@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { ConnectButton, useCurrentAccount } from '@mysten/dapp-kit';
+import { ConnectButton, useCurrentAccount, useSuiClientQuery, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { Transaction } from '@mysten/sui/transactions';
 import { useNavigate } from 'react-router-dom';
 
 const GalleryPage: React.FC = () => {
@@ -12,13 +13,58 @@ const GalleryPage: React.FC = () => {
     // In a real app, we would merge this with ownedObjects
     // Mock data for now since we don't have real NFTs on testnet yet for the user to see immediately
     // In a real app, we would merge this with ownedObjects
-    const mockItems: any[] = [];
+    const { data: ownedObjects } = useSuiClientQuery(
+        'getOwnedObjects',
+        {
+            owner: account?.address || '',
+            filter: { StructType: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::MediaProof' },
+            options: { showContent: true, showDisplay: true },
+        },
+        { enabled: !!account }
+    );
 
-    const filteredItems = mockItems.filter(item => {
+    const items = ownedObjects?.data?.map((obj: any) => {
+        const content = obj.data?.content?.fields;
+        if (!content) return null;
+        return {
+            id: obj.data?.objectId,
+            type: 'photo', // Default to photo for now
+            src: `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${content.blob_id}`,
+            title: content.description || 'Untitled',
+            user: 'You', // Since we are fetching owned objects
+            verified: true,
+            timestamp: content.timestamp
+        };
+    }).filter(Boolean) || [];
+
+    const filteredItems = items.filter((item: any) => {
         if (filter === 'all') return true;
         if (filter === 'verified') return item.verified;
         return item.type === filter;
     });
+
+    const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
+
+    const handleBurn = (objectId: string) => {
+        const tx = new Transaction();
+        tx.moveCall({
+            target: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::burn',
+            arguments: [tx.object(objectId)],
+        });
+
+        signAndExecuteTransaction({
+            transaction: tx,
+        }, {
+            onSuccess: () => {
+                console.log('Burned successfully');
+                // Ideally refetch or optimistic update, but reload works for now
+                window.location.reload();
+            },
+            onError: (err) => {
+                console.error('Burn failed:', err);
+            }
+        });
+    };
 
     return (
         <div className="flex flex-col min-h-screen overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display">
@@ -179,7 +225,7 @@ const GalleryPage: React.FC = () => {
                         {/* Masonry Grid */}
                         <div className="gap-6 space-y-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4">
                             {filteredItems.length > 0 ? (
-                                filteredItems.map((item) => (
+                                filteredItems.map((item: any) => (
                                     <div key={item.id} className="group relative break-inside-avoid rounded-2xl overflow-hidden bg-surface-dark border border-[#334155]/50 hover:border-primary/50 transition-all duration-300 cursor-pointer shadow-lg shadow-black/20 hover:shadow-primary/10">
                                         {item.verified && (
                                             <div className="absolute top-3 right-3 z-20 bg-[#0b1221]/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 border border-verified/30">
@@ -195,6 +241,15 @@ const GalleryPage: React.FC = () => {
                                                     <div className="w-5 h-5 rounded-full border border-white/20 bg-gray-500"></div>
                                                     <span className="text-xs font-medium text-white/80">{item.user}</span>
                                                 </div>
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.stopPropagation();
+                                                        handleBurn(item.id);
+                                                    }}
+                                                    className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
+                                                >
+                                                    Delete
+                                                </button>
                                             </div>
                                         </div>
                                     </div>

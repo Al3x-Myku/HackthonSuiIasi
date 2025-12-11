@@ -22,17 +22,34 @@ const PreviewPage: React.FC = () => {
 
         try {
             // 1. Upload to Walrus
-            const response = await fetch('https://aggregator.walrus-testnet.walrus.space/v1/store', {
+            // Use the publisher node for uploads with the correct /v1/blobs endpoint
+            const response = await fetch('https://publisher.walrus-testnet.walrus.space/v1/blobs?epochs=5', {
                 method: 'PUT',
                 body: blob,
             });
+
+            if (!response.ok) {
+                throw new Error(`Walrus upload failed: ${response.status} ${response.statusText}`);
+            }
+
             const data = await response.json();
-            const blobId = data.newlyCreated.blobObject.blobId;
+
+            // Handle different response structures if necessary, but standard is newlyCreated.blobObject.blobId
+            let blobId;
+            if (data.newlyCreated && data.newlyCreated.blobObject && data.newlyCreated.blobObject.blobId) {
+                blobId = data.newlyCreated.blobObject.blobId;
+            } else if (data.alreadyCertified && data.alreadyCertified.blobId) {
+                blobId = data.alreadyCertified.blobId;
+            } else {
+                console.error("Unexpected Walrus response:", data);
+                throw new Error("Invalid response from Walrus");
+            }
 
             // 2. Mint NFT
             const tx = new Transaction();
-            // TODO: Replace with your actual deployed package ID
-            const PACKAGE_ID = '0x0';
+            // Address of the deployed contract
+            // Address of the deployed contract
+            const PACKAGE_ID = '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7';
 
             tx.moveCall({
                 target: `${PACKAGE_ID}::truth_lens::mint_proof`,

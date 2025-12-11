@@ -1,9 +1,14 @@
 module truth_lens::truth_lens {
-    use std::string::{String};
+    use std::string::{Self, String};
     use sui::event;
     use sui::object::{Self, UID, ID};
     use sui::transfer;
     use sui::tx_context::{Self, TxContext};
+    use sui::package;
+    use sui::display;
+
+    /// One-Time Witness for the module
+    struct TRUTH_LENS has drop {}
 
     /// Struct to represent a verified media proof
     struct MediaProof has key, store {
@@ -21,6 +26,36 @@ module truth_lens::truth_lens {
         proof_id: ID,
         minter: address,
         image_hash: String,
+    }
+
+    fun init(otw: TRUTH_LENS, ctx: &mut TxContext) {
+        let keys = vector[
+            string::utf8(b"name"),
+            string::utf8(b"link"),
+            string::utf8(b"image_url"),
+            string::utf8(b"description"),
+            string::utf8(b"project_url"),
+            string::utf8(b"creator"),
+        ];
+
+        let values = vector[
+            string::utf8(b"TruthLens Proof"),
+            string::utf8(b"https://truthlens.app"),
+            string::utf8(b"https://aggregator.walrus-testnet.walrus.space/v1/blobs/{blob_id}"),
+            string::utf8(b"{description}"),
+            string::utf8(b"https://truthlens.app"),
+            string::utf8(b"TruthLens"),
+        ];
+
+        let publisher = package::claim(otw, ctx);
+        let display = display::new_with_fields<MediaProof>(
+            &publisher, keys, values, ctx
+        );
+
+        display::update_version(&mut display);
+
+        transfer::public_transfer(publisher, tx_context::sender(ctx));
+        transfer::public_transfer(display, tx_context::sender(ctx));
     }
 
     /// Mint a new MediaProof and transfer it to the sender
@@ -54,5 +89,19 @@ module truth_lens::truth_lens {
         });
 
         transfer::public_transfer(proof, minter);
+    }
+
+    /// Burn (destroy) a MediaProof
+    public fun burn(proof: MediaProof) {
+        let MediaProof {
+            id,
+            image_hash: _,
+            blob_id: _,
+            timestamp: _,
+            location: _,
+            device_type: _,
+            description: _,
+        } = proof;
+        object::delete(id);
     }
 }
