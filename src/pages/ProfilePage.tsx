@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useCurrentAccount, useSuiClientQuery, ConnectButton, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 import { useNavigate } from 'react-router-dom';
+import ImageModal from '../components/ImageModal';
 
 const ProfilePage: React.FC = () => {
     const account = useCurrentAccount();
@@ -78,6 +79,8 @@ const ProfilePage: React.FC = () => {
         });
     };
 
+    const [selectedItem, setSelectedItem] = useState<any>(null);
+
     return (
         <div className="flex flex-col min-h-screen overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display">
             {/* Header */}
@@ -130,7 +133,11 @@ const ProfilePage: React.FC = () => {
 
                             {/* Map owned objects here */}
                             {items.map((item: any) => (
-                                <div key={item.id} className="group relative break-inside-avoid rounded-2xl overflow-hidden bg-surface-dark border border-[#334155]/50 hover:border-primary/50 transition-all duration-300 cursor-pointer shadow-lg shadow-black/20 hover:shadow-primary/10">
+                                <div
+                                    key={item.id}
+                                    onClick={() => setSelectedItem(item)}
+                                    className="group relative break-inside-avoid rounded-2xl overflow-hidden bg-surface-dark border border-[#334155]/50 hover:border-primary/50 transition-all duration-300 cursor-pointer shadow-lg shadow-black/20 hover:shadow-primary/10"
+                                >
                                     <div className="absolute top-3 right-3 z-20 bg-[#0b1221]/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 border border-verified/30">
                                         <span className="material-symbols-outlined text-verified text-[16px]">verified</span>
                                         <span className="text-verified text-[10px] font-bold uppercase tracking-wide">Verified</span>
@@ -164,6 +171,13 @@ const ProfilePage: React.FC = () => {
                     )}
                 </div>
             </main>
+
+            <ImageModal
+                isOpen={!!selectedItem}
+                onClose={() => setSelectedItem(null)}
+                item={selectedItem}
+                onDelete={handleBurn}
+            />
         </div>
     );
 };
