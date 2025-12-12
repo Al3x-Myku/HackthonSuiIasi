@@ -73,11 +73,71 @@ const ProofPage: React.FC = () => {
                                         </div>
                                     </div>
                                     <div className="flex gap-3">
-                                        <button className="flex items-center gap-2 cursor-pointer rounded-lg h-10 px-4 bg-[#243047] hover:bg-[#2d3b55] text-white text-sm font-bold transition-colors">
+                                        <button
+                                            className="flex items-center gap-2 cursor-pointer rounded-lg h-10 px-4 bg-[#243047] hover:bg-[#2d3b55] text-white text-sm font-bold transition-colors"
+                                            onClick={async () => {
+                                                const shareUrl = window.location.href;
+                                                if (navigator.share) {
+                                                    try {
+                                                        await navigator.share({
+                                                            title: `TruthLens Proof #${id?.slice(0, 8)}`,
+                                                            text: 'Check out this verified proof on TruthLens!',
+                                                            url: shareUrl,
+                                                        });
+                                                    } catch (err) {
+                                                        console.log('Share cancelled');
+                                                    }
+                                                } else {
+                                                    await navigator.clipboard.writeText(shareUrl);
+                                                    alert('Link copied to clipboard!');
+                                                }
+                                            }}
+                                        >
                                             <span className="material-symbols-outlined text-[18px]">share</span>
                                             Share
                                         </button>
-                                        <button className="flex items-center gap-2 cursor-pointer rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-bold transition-colors shadow-[0_0_15px_rgba(23,84,207,0.3)]">
+                                        <button
+                                            className="flex items-center gap-2 cursor-pointer rounded-lg h-10 px-4 bg-primary hover:bg-primary/90 text-white text-sm font-bold transition-colors shadow-[0_0_15px_rgba(23,84,207,0.3)]"
+                                            onClick={() => {
+                                                const certificateText = `
+╔═══════════════════════════════════════════════════════════════════╗
+║                    TRUTHLENS VERIFICATION CERTIFICATE             ║
+╠═══════════════════════════════════════════════════════════════════╣
+║                                                                   ║
+║  PROOF ID: ${id}
+║                                                                   ║
+║  STATUS: ✓ VERIFIED ON SUI BLOCKCHAIN                            ║
+║                                                                   ║
+║  TIMESTAMP: ${new Date(Number(content?.timestamp)).toISOString()}
+║  LOCATION: ${content?.location || 'Unknown'}
+║  DEVICE: ${content?.device_type || 'Unknown'}
+║                                                                   ║
+║  SHA-256 HASH:                                                    ║
+║  ${content?.image_hash || 'N/A'}
+║                                                                   ║
+║  WALRUS BLOB ID:                                                  ║
+║  ${content?.blob_id || 'N/A'}
+║                                                                   ║
+║  EXPLORER LINK:                                                   ║
+║  https://suiscan.xyz/testnet/object/${id}
+║                                                                   ║
+╠═══════════════════════════════════════════════════════════════════╣
+║  This certificate proves the authenticity and integrity of the   ║
+║  media file. The content was cryptographically signed at capture ║
+║  and immutably recorded on the Sui blockchain via TruthLens.     ║
+╚═══════════════════════════════════════════════════════════════════╝
+`;
+                                                const blob = new Blob([certificateText], { type: 'text/plain' });
+                                                const url = URL.createObjectURL(blob);
+                                                const a = document.createElement('a');
+                                                a.href = url;
+                                                a.download = `TruthLens_Certificate_${id?.slice(0, 8)}.txt`;
+                                                document.body.appendChild(a);
+                                                a.click();
+                                                document.body.removeChild(a);
+                                                URL.revokeObjectURL(url);
+                                            }}
+                                        >
                                             <span className="material-symbols-outlined text-[18px]">download</span>
                                             Export Certificate
                                         </button>
