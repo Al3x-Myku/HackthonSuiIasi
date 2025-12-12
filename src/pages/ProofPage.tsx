@@ -25,9 +25,9 @@ const ProofPage: React.FC = () => {
     const imageUrl = display?.image_url || `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${content?.blob_id}`;
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-white">
+        <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-white">
             {/* Navbar */}
-            <header className="shrink-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#243047] bg-[#111722]/90 backdrop-blur-md px-4 sm:px-10 py-3">
+            <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#243047] bg-[#111722]/90 backdrop-blur-md px-4 sm:px-10 py-3">
                 <div className="flex items-center gap-8">
                     <div className="flex items-center gap-4 text-white cursor-pointer" onClick={() => navigate('/')}>
                         <div className="size-8 text-primary">
@@ -46,7 +46,7 @@ const ProofPage: React.FC = () => {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar pb-24 md:pb-0">
+            <div className="flex-1 pb-24 md:pb-0">
                 <div className="layout-container flex flex-col w-full max-w-[1440px] mx-auto min-h-full">
                     <div className="px-4 sm:px-6 lg:px-20 xl:px-40 flex flex-1 justify-center py-6 md:py-8">
                         <div className="layout-content-container flex flex-col w-full flex-1 gap-8">
