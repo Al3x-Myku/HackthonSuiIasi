@@ -30,7 +30,6 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/proof/:id" element={<ProofPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
-              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
             <MobileNav />
           </BrowserRouter>

@@ -1,10 +1,12 @@
 import React from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSuiClientQuery, ConnectButton } from '@mysten/dapp-kit';
+import VerificationModal from '../components/VerificationModal';
 
 const ProofPage: React.FC = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const [isVerificationOpen, setIsVerificationOpen] = React.useState(false);
 
     const { data: objectData, isPending, error } = useSuiClientQuery(
         'getObject',
@@ -23,9 +25,9 @@ const ProofPage: React.FC = () => {
     const imageUrl = display?.image_url || `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${content?.blob_id}`;
 
     return (
-        <div className="flex flex-col h-screen overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-white">
+        <div className="flex flex-col min-h-screen bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display antialiased selection:bg-primary selection:text-white">
             {/* Navbar */}
-            <header className="shrink-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#243047] bg-[#111722]/90 backdrop-blur-md px-4 sm:px-10 py-3">
+            <header className="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#243047] bg-[#111722]/90 backdrop-blur-md px-4 sm:px-10 py-3">
                 <div className="flex items-center gap-8">
                     <div className="flex items-center gap-4 text-white cursor-pointer" onClick={() => navigate('/')}>
                         <div className="size-8 text-primary">
@@ -44,7 +46,7 @@ const ProofPage: React.FC = () => {
                 </div>
             </header>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar">
+            <div className="flex-1">
                 <div className="layout-container flex flex-col w-full max-w-[1440px] mx-auto min-h-full">
                     <div className="px-4 sm:px-6 lg:px-20 xl:px-40 flex flex-1 justify-center py-6 md:py-8">
                         <div className="layout-content-container flex flex-col w-full flex-1 gap-8">
@@ -283,14 +285,18 @@ const ProofPage: React.FC = () => {
                                                     </span>
                                                     <span className="material-symbols-outlined text-[#93a5c8] group-hover:translate-x-1 transition-transform text-[16px]">arrow_forward</span>
                                                 </a>
-                                                <a className="flex items-center justify-between p-3 rounded-lg bg-[#243047]/30 hover:bg-[#243047]/60 transition-colors border border-white/5 group"
-                                                    href="#">
-                                                    <span className="text-sm text-white font-medium flex items-center gap-2">
-                                                        <span className="material-symbols-outlined text-primary text-[18px]">policy</span>
-                                                        Validator Signature
-                                                    </span>
-                                                    <span className="material-symbols-outlined text-[#93a5c8] group-hover:translate-x-1 transition-transform text-[16px]">arrow_forward</span>
-                                                </a>
+                                                <button
+                                                    className="flex items-center justify-center w-full p-3 rounded-lg bg-[#243047]/30 hover:bg-[#243047]/60 transition-colors border border-white/5 group cursor-pointer"
+                                                    onClick={() => setIsVerificationOpen(true)}
+                                                >
+                                                    <div className="flex items-center justify-between w-full">
+                                                        <span className="text-sm text-white font-medium flex items-center gap-2">
+                                                            <span className="material-symbols-outlined text-primary text-[18px]">policy</span>
+                                                            Validator Signature
+                                                        </span>
+                                                        <span className="material-symbols-outlined text-[#93a5c8] group-hover:translate-x-1 transition-transform text-[16px]">arrow_forward</span>
+                                                    </div>
+                                                </button>
                                             </div>
                                         </div>
                                     </section>
@@ -311,6 +317,12 @@ const ProofPage: React.FC = () => {
                     </div>
                 </div>
             </div>
+
+            <VerificationModal
+                isOpen={isVerificationOpen}
+                onClose={() => setIsVerificationOpen(false)}
+                proofId={id || ''}
+            />
         </div>
     );
 };
