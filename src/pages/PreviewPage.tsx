@@ -6,7 +6,7 @@ import { Transaction } from '@mysten/sui/transactions';
 const PreviewPage: React.FC = () => {
     const location = useLocation();
     const navigate = useNavigate();
-    const { imageSrc, hash, blob } = location.state || {};
+    const { imageSrc, hash, blob, location: gpsLocation } = location.state || {};
     const [isMinting, setIsMinting] = useState(false);
     const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
     const account = useCurrentAccount();
@@ -57,7 +57,7 @@ const PreviewPage: React.FC = () => {
                     tx.pure.string(hash),          // image_hash
                     tx.pure.string(blobId),        // blob_id
                     tx.pure.u64(Date.now()),       // timestamp
-                    tx.pure.string('Unknown'),     // location (placeholder)
+                    tx.pure.string(gpsLocation || 'Unknown Location'), // location
                     tx.pure.string('Webcam'),      // device_type
                     tx.pure.string('Captured via TruthLens'), // description
                 ],
@@ -111,6 +111,13 @@ const PreviewPage: React.FC = () => {
                                     <label className="text-xs text-gray-500 block mb-1">SHA-256 HASH</label>
                                     <div className="font-mono text-xs text-accent-green break-all bg-black/30 p-3 rounded border border-accent-green/20">
                                         {hash}
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="text-xs text-gray-500 block mb-1">LOCATION</label>
+                                    <div className="font-mono text-sm text-white flex items-center gap-2">
+                                        <span className="material-symbols-outlined text-[16px] text-primary">location_on</span>
+                                        {gpsLocation || 'Detecting...'}
                                     </div>
                                 </div>
                                 <div>

@@ -89,6 +89,14 @@ const ImageModal: React.FC<ImageModalProps> = ({ isOpen, onClose, item, onDelete
                             View on Explorer
                         </a>
 
+                        <button
+                            onClick={() => window.location.href = `/proof/${item.id}`}
+                            className="flex items-center justify-center gap-2 w-full py-3 bg-primary hover:bg-primary/90 text-white rounded-xl transition-colors mb-3 font-medium shadow-lg shadow-primary/20"
+                        >
+                            <span className="material-symbols-outlined text-[20px]">verified</span>
+                            View Full Proof
+                        </button>
+
                         {onDelete && (
                             <button
                                 onClick={() => onDelete(item)}

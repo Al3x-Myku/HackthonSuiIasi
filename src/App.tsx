@@ -6,6 +6,7 @@ import GalleryPage from './pages/GalleryPage';
 import CameraPage from './pages/CameraPage';
 import PreviewPage from './pages/PreviewPage';
 import ProfilePage from './pages/ProfilePage';
+import ProofPage from './pages/ProofPage';
 
 // Config options for the networks you want to connect to
 const { networkConfig } = createNetworkConfig({
@@ -26,6 +27,7 @@ function App() {
               <Route path="/camera" element={<CameraPage />} />
               <Route path="/preview" element={<PreviewPage />} />
               <Route path="/profile" element={<ProfilePage />} />
+              <Route path="/proof/:id" element={<ProofPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </BrowserRouter>

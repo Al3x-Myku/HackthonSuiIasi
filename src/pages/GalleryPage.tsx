@@ -203,7 +203,7 @@ const GalleryPage: React.FC = () => {
 
                 {/* Main Content */}
                 <main className="relative flex-1 overflow-y-auto custom-scrollbar">
-                    <div className="max-w-[1400px] mx-auto p-6 md:p-8 lg:p-10">
+                    <div className="max-w-[1400px] mx-auto p-4 md:p-8 lg:p-10">
                         {/* Headline & Header */}
                         <div className="flex flex-col justify-between gap-4 mb-8 md:flex-row md:items-end">
                             <div>

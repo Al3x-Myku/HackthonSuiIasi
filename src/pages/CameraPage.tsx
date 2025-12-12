@@ -20,6 +20,25 @@ const CameraPage: React.FC = () => {
         if (webcamRef.current) {
             setIsCapturing(true);
             const imageSrc = webcamRef.current.getScreenshot();
+
+            // Capture Geolocation
+            let locationData = "Unknown Location";
+            if ("geolocation" in navigator) {
+                try {
+                    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+                        navigator.geolocation.getCurrentPosition(resolve, reject, {
+                            enableHighAccuracy: true,
+                            timeout: 5000,
+                            maximumAge: 0
+                        });
+                    });
+                    locationData = `${position.coords.latitude.toFixed(4)}° N, ${position.coords.longitude.toFixed(4)}° W`;
+                } catch (error) {
+                    console.warn("Geolocation access denied or failed", error);
+                    locationData = "Location Denied";
+                }
+            }
+
             if (imageSrc) {
                 // Convert base64 to blob/buffer for hashing
                 const response = await fetch(imageSrc);
@@ -29,7 +48,7 @@ const CameraPage: React.FC = () => {
                 const hashArray = Array.from(new Uint8Array(hashBuffer));
                 const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-                navigate('/preview', { state: { imageSrc, hash: hashHex, blob } });
+                navigate('/preview', { state: { imageSrc, hash: hashHex, blob, location: locationData } });
             }
             setIsCapturing(false);
         }

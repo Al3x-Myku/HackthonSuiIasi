@@ -103,7 +103,7 @@ const ProfilePage: React.FC = () => {
                 </div>
             </header>
 
-            <main className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-8 lg:p-10">
+            <main className="flex-1 overflow-y-auto custom-scrollbar p-4 md:p-8 lg:p-10">
                 <div className="max-w-[1400px] mx-auto">
                     <div className="flex flex-col items-center justify-center mb-12">
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent-green flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
