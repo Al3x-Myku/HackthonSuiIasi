@@ -7,6 +7,7 @@ import CameraPage from './pages/CameraPage';
 import PreviewPage from './pages/PreviewPage';
 import ProfilePage from './pages/ProfilePage';
 import ProofPage from './pages/ProofPage';
+import MobileNav from './components/MobileNav';
 
 // Config options for the networks you want to connect to
 const { networkConfig } = createNetworkConfig({
@@ -29,7 +30,9 @@ function App() {
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/proof/:id" element={<ProofPage />} />
               <Route path="*" element={<Navigate to="/" replace />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
+            <MobileNav />
           </BrowserRouter>
         </WalletProvider>
       </SuiClientProvider>
