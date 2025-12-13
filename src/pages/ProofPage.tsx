@@ -167,46 +167,109 @@ const ProofPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            {/* Main Viewer Section */}
-                            <div className="relative w-full rounded-xl overflow-hidden glass-panel group shadow-2xl">
-                                {/* Tech overlay corners */}
-                                <div className="absolute top-4 left-4 size-4 border-t-2 border-l-2 border-primary/50 z-20"></div>
-                                <div className="absolute top-4 right-4 size-4 border-t-2 border-r-2 border-primary/50 z-20"></div>
-                                <div className="absolute bottom-4 left-4 size-4 border-b-2 border-l-2 border-primary/50 z-20"></div>
-                                <div className="absolute bottom-4 right-4 size-4 border-b-2 border-r-2 border-primary/50 z-20"></div>
+                            {/* Main Content: Image + Certificate Side by Side */}
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {/* Left: Image Viewer */}
+                                <div className="relative w-full rounded-xl overflow-hidden glass-panel group shadow-2xl">
+                                    {/* Tech overlay corners */}
+                                    <div className="absolute top-4 left-4 size-4 border-t-2 border-l-2 border-primary/50 z-20"></div>
+                                    <div className="absolute top-4 right-4 size-4 border-t-2 border-r-2 border-primary/50 z-20"></div>
+                                    <div className="absolute bottom-4 left-4 size-4 border-b-2 border-l-2 border-primary/50 z-20"></div>
+                                    <div className="absolute bottom-4 right-4 size-4 border-b-2 border-r-2 border-primary/50 z-20"></div>
 
-                                {/* Badge */}
-                                <div className="absolute top-6 left-6 z-20 flex items-center gap-2 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-white/10 shadow-lg animate-[pulse_3s_ease-in-out_infinite]">
-                                    <span className="material-symbols-outlined text-green-400 text-[18px]">check_circle</span>
-                                    <span className="text-xs font-bold tracking-wide uppercase">Authenticated on Sui Network</span>
+                                    {/* Badge */}
+                                    <div className="absolute top-6 left-6 z-20 flex items-center gap-2 bg-black/60 backdrop-blur-md text-white px-3 py-1.5 rounded-full border border-white/10 shadow-lg">
+                                        <span className="material-symbols-outlined text-green-400 text-[18px]">check_circle</span>
+                                        <span className="text-xs font-bold tracking-wide uppercase">Verified</span>
+                                    </div>
+
+                                    {/* Image */}
+                                    <div className="w-full aspect-square lg:aspect-[4/3] bg-black bg-center bg-contain bg-no-repeat relative flex items-center justify-center">
+                                        <img src={imageUrl} alt={content?.description} className="max-w-full max-h-full object-contain" />
+                                    </div>
                                 </div>
 
-                                {/* Image */}
-                                <div className="w-full aspect-video md:aspect-[21/9] lg:h-[600px] bg-black bg-center bg-contain bg-no-repeat relative flex items-center justify-center">
-                                    <img src={imageUrl} alt={content?.description} className="max-w-full max-h-full object-contain" />
-                                    <div className="absolute inset-0 bg-gradient-to-t from-[#111722] via-transparent to-transparent opacity-60 pointer-events-none"></div>
-                                </div>
-
-                                {/* Overlay Info Bar */}
-                                <div className="absolute bottom-0 w-full glass-panel-heavy px-6 py-4 flex flex-wrap justify-between items-center gap-4">
-                                    <div className="flex items-center gap-6 text-sm text-[#93a5c8]">
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[18px]">photo_camera</span>
-                                            <span>{content?.device_type || 'Unknown Device'}</span>
+                                {/* Right: Certificate Card */}
+                                <div className="glass-panel rounded-xl p-6 flex flex-col">
+                                    {/* Header */}
+                                    <div className="flex items-center gap-3 mb-6 pb-4 border-b border-white/10">
+                                        <div className="w-12 h-12 rounded-xl bg-green-500/20 flex items-center justify-center">
+                                            <span className="material-symbols-outlined text-green-400 text-2xl">verified</span>
                                         </div>
-                                        <div className="w-px h-4 bg-white/10"></div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[18px]">straighten</span>
-                                            <span>Original Quality</span>
-                                        </div>
-                                        <div className="w-px h-4 bg-white/10"></div>
-                                        <div className="flex items-center gap-2">
-                                            <span className="material-symbols-outlined text-[18px]">hard_drive</span>
-                                            <span>Walrus Storage</span>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-white">Authenticity Certificate</h3>
+                                            <p className="text-sm text-[#93a5c8]">Captured via TruthLens</p>
                                         </div>
                                     </div>
-                                    <div className="font-mono text-xs text-primary bg-primary/10 px-2 py-1 rounded border border-primary/20">
-                                        SIGNED_BY_DEVICE_KEY
+
+                                    {/* Certificate Details */}
+                                    <div className="flex-1 flex flex-col gap-5">
+                                        {/* Captured By */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wider">Captured By</label>
+                                            <div className="flex items-center gap-2 mt-2">
+                                                <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center">
+                                                    <span className="material-symbols-outlined text-primary text-[16px]">person</span>
+                                                </div>
+                                                <span className="text-white font-medium">
+                                                    {objectData.data.owner && typeof objectData.data.owner === 'object' && 'AddressOwner' in objectData.data.owner
+                                                        ? shortenAddress(objectData.data.owner.AddressOwner)
+                                                        : 'You'}
+                                                </span>
+                                            </div>
+                                        </div>
+
+                                        {/* Timestamp */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wider">Timestamp</label>
+                                            <p className="text-white font-mono text-sm mt-2">
+                                                {new Date(Number(content?.timestamp)).toLocaleString('en-US', {
+                                                    year: 'numeric',
+                                                    month: '2-digit',
+                                                    day: '2-digit',
+                                                    hour: '2-digit',
+                                                    minute: '2-digit',
+                                                    second: '2-digit',
+                                                    hour12: true
+                                                })}
+                                            </p>
+                                        </div>
+
+                                        {/* Object ID */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wider">Object ID</label>
+                                            <div className="bg-[#0d1526] rounded-lg p-3 border border-[#334155] mt-2 font-mono text-xs text-[#93a5c8] break-all">
+                                                {id}
+                                            </div>
+                                        </div>
+
+                                        {/* Contract Type */}
+                                        <div>
+                                            <label className="text-xs font-semibold text-[#64748b] uppercase tracking-wider">Contract Type</label>
+                                            <div className="bg-[#0d1526] rounded-lg p-3 border border-[#334155] mt-2 font-mono text-xs text-[#93a5c8] break-all">
+                                                {objectData.data.type || 'truth_lens::MediaProof'}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Buttons */}
+                                    <div className="flex flex-col gap-3 mt-6 pt-4 border-t border-white/10">
+                                        <a
+                                            href={`https://suiscan.xyz/testnet/object/${id}`}
+                                            target="_blank"
+                                            rel="noreferrer"
+                                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-[#243047]/50 hover:bg-[#243047] border border-[#334155] text-white font-medium transition-colors"
+                                        >
+                                            <span className="material-symbols-outlined text-[20px]">open_in_new</span>
+                                            View on Explorer
+                                        </a>
+                                        <button
+                                            onClick={() => setIsVerificationOpen(true)}
+                                            className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-primary hover:bg-primary-hover text-white font-bold transition-colors shadow-[0_0_20px_rgba(23,84,207,0.3)]"
+                                        >
+                                            <span className="material-symbols-outlined text-[20px]">verified_user</span>
+                                            View Full Proof
+                                        </button>
                                     </div>
                                 </div>
                             </div>

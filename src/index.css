@@ -2,11 +2,38 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile touch scrolling support */
+html,
+body {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior: auto;
+}
+
+/* Ensure all scrollable containers support touch */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer base {
+
+  /* Enable touch scrolling on all scrollable elements */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .overflow-scroll,
+  .overflow-y-scroll,
+  .overflow-x-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+}
+
 @layer utilities {
   .glass-panel {
     @apply bg-[#162032]/60 backdrop-blur-md border border-white/10;
   }
-  
+
   .text-glow {
     text-shadow: 0 0 10px rgba(23, 84, 207, 0.5);
   }
@@ -14,49 +41,69 @@
   .neon-glow {
     text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
   }
-  
+
   .scrollbar-hide::-webkit-scrollbar {
-      display: none;
+    display: none;
   }
-  
+
   .scrollbar-hide {
-      -ms-overflow-style: none;
-      scrollbar-width: none;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
-  
+
   .custom-scrollbar::-webkit-scrollbar {
-      width: 8px;
-      height: 8px;
+    width: 8px;
+    height: 8px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-track {
-      background: #0b1221;
+    background: #0b1221;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-      background: #243047;
-      border-radius: 4px;
+    background: #243047;
+    border-radius: 4px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-      background: #3b4d6e;
+    background: #3b4d6e;
+  }
+
+  /* Touch scrolling utility class */
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    overscroll-behavior: contain;
   }
 }
 
 /* Animations */
 @keyframes scan {
-    0% { top: 0%; opacity: 0; }
-    10% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { top: 100%; opacity: 0; }
+  0% {
+    top: 0%;
+    opacity: 0;
+  }
+
+  10% {
+    opacity: 1;
+  }
+
+  90% {
+    opacity: 1;
+  }
+
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
 }
 
 .scan-line {
-    width: 100%;
-    height: 2px;
-    background: rgba(0, 255, 148, 0.5);
-    position: absolute;
-    z-index: 10;
-    animation: scan 3s linear infinite;
-    box-shadow: 0 0 4px rgba(0, 255, 148, 0.8);
+  width: 100%;
+  height: 2px;
+  background: rgba(0, 255, 148, 0.5);
+  position: absolute;
+  z-index: 10;
+  animation: scan 3s linear infinite;
+  box-shadow: 0 0 4px rgba(0, 255, 148, 0.8);
 }
