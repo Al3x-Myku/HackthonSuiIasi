@@ -215,13 +215,6 @@ const LandingPage: React.FC = () => {
                                 </div>
                             </div>
 
-                            <div className="mt-8 text-center">
-                                <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-                                    By connecting, you agree to our{' '}
-                                    <a className="text-primary hover:underline" href="#">Terms of Service</a> and{' '}
-                                    <a className="text-primary hover:underline" href="#">Privacy Policy</a>.
-                                </p>
-                            </div>
                         </div>
                     </div>
                 </div>

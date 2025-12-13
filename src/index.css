@@ -2,6 +2,31 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile touch scrolling support */
+html, body {
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x pan-y;
+  overscroll-behavior: auto;
+}
+
+/* Ensure all scrollable containers support touch */
+* {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@layer base {
+  /* Enable touch scrolling on all scrollable elements */
+  .overflow-auto,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .overflow-scroll,
+  .overflow-y-scroll,
+  .overflow-x-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+  }
+}
+
 @layer utilities {
   .glass-panel {
     @apply bg-[#162032]/60 backdrop-blur-md border border-white/10;
@@ -41,6 +66,13 @@
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: #3b4d6e;
   }
+
+  /* Touch scrolling utility class */
+  .touch-scroll {
+    -webkit-overflow-scrolling: touch;
+    touch-action: pan-x pan-y;
+    overscroll-behavior: contain;
+  }
 }
 
 /* Animations */
@@ -60,3 +92,4 @@
     animation: scan 3s linear infinite;
     box-shadow: 0 0 4px rgba(0, 255, 148, 0.8);
 }
+
