@@ -1,286 +1,152 @@
-import React, { useRef, useCallback, useState } from 'react';
-import Webcam from 'react-webcam';
-import { useNavigate } from 'react-router-dom';
-import { useCurrentAccount, useDisconnectWallet } from '@mysten/dapp-kit';
+import React, { useCallback, useRef, useState } from "react";
+import Webcam from "react-webcam";
+import { useNavigate } from "react-router-dom";
 
-const CameraPage: React.FC = () => {
-    const webcamRef = useRef<Webcam>(null);
-    const navigate = useNavigate();
-    const account = useCurrentAccount();
-    const { mutate: disconnect } = useDisconnectWallet();
-    const [isCapturing, setIsCapturing] = useState(false);
-    const [cameraError, setCameraError] = useState<string | null>(null);
-    const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
-    const [flashOn, setFlashOn] = useState(false);
+type Mode = "photo" | "video";
 
-    // Helper to shorten wallet address
-    const shortenAddress = (address: string) => {
-        return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    };
+export default function CameraPage() {
+  const webcamRef = useRef<Webcam>(null);
+  const navigate = useNavigate();
 
-    const toggleFlash = () => {
-        setFlashOn(!flashOn);
-        console.log("Flash toggled:", !flashOn);
-    };
+  const [mode, setMode] = useState<Mode>("photo");
+  const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
+  const [ready, setReady] = useState(false);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
 
-    const capture = useCallback(async () => {
-        if (webcamRef.current) {
-            setIsCapturing(true);
-            const imageSrc = webcamRef.current.getScreenshot();
+  const videoConstraints = {
+    facingMode,
+    width: { ideal: 1920 },
+    height: { ideal: 1080 },
+  };
 
-            // Capture Geolocation
-            let locationData = "Unknown Location";
-            if ("geolocation" in navigator) {
-                try {
-                    const position = await new Promise<GeolocationPosition>((resolve, reject) => {
-                        navigator.geolocation.getCurrentPosition(resolve, reject, {
-                            enableHighAccuracy: true,
-                            timeout: 5000,
-                            maximumAge: 0
-                        });
-                    });
-                    locationData = `${position.coords.latitude.toFixed(4)}° N, ${position.coords.longitude.toFixed(4)}° W`;
-                } catch (error) {
-                    console.warn("Geolocation access denied or failed", error);
-                    locationData = "Location Denied";
-                }
-            }
+  const onUserMedia = () => {
+    setCameraError(null);
+    setReady(true);
+  };
 
-            if (imageSrc) {
-                // Convert base64 to blob/buffer for hashing
-                const response = await fetch(imageSrc);
-                const blob = await response.blob();
-                const buffer = await blob.arrayBuffer();
-                const hashBuffer = await window.crypto.subtle.digest('SHA-256', buffer);
-                const hashArray = Array.from(new Uint8Array(hashBuffer));
-                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+  const onUserMediaError = (err: any) => {
+    console.error(err);
+    setCameraError("Camera access failed (permission / HTTPS / busy).");
+  };
 
-                navigate('/preview', { state: { imageSrc, hash: hashHex, blob, location: locationData } });
-            }
-            setIsCapturing(false);
-        }
-    }, [webcamRef, navigate]);
+  const switchCamera = () => {
+    setFacingMode((p) => (p === "user" ? "environment" : "user"));
+    setReady(false);
+  };
 
-    const handleUserMediaError = useCallback((error: string | DOMException) => {
-        console.error("Camera Error:", error);
-        let errorMessage = "Could not access camera.";
-        if (typeof error === 'object' && error !== null && 'name' in error) {
-            if (error.name === 'NotAllowedError') {
-                errorMessage = "Permission denied. Please allow camera access.";
-            } else if (error.name === 'NotFoundError') {
-                errorMessage = "No camera found.";
-            } else if (error.name === 'NotReadableError') {
-                errorMessage = "Camera is in use by another application.";
-            } else if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1') {
-                errorMessage = "Camera requires HTTPS or localhost.";
-            }
-        }
-        setCameraError(errorMessage);
-    }, []);
+  const capturePhoto = useCallback(async () => {
+    if (!webcamRef.current) return;
 
-    const toggleCamera = () => {
-        setFacingMode(prev => prev === "user" ? "environment" : "user");
-    };
+    const imageSrc = webcamRef.current.getScreenshot();
+    if (!imageSrc) {
+      console.warn("Screenshot null (camera not ready)");
+      return;
+    }
 
-    return (
-        <div className="flex flex-col h-screen overflow-hidden bg-camera-bg text-slate-900 dark:text-white font-display">
-            {/* Header */}
-            <header className="h-16 shrink-0 flex items-center justify-between px-6 border-b border-gray-200 dark:border-border-dark bg-white dark:bg-surface-dark z-20">
-                <div className="flex items-center gap-3">
-                    <div className="flex items-center justify-center rounded-lg size-8 text-primary bg-primary/10 cursor-pointer" onClick={() => navigate('/')}>
-                        <span className="material-symbols-outlined">verified_user</span>
-                    </div>
-                    <h1 className="text-xl font-bold tracking-tight cursor-pointer" onClick={() => navigate('/')}>TruthLens</h1>
-                    <span className="bg-gray-200 dark:bg-border-dark text-xs px-2 py-0.5 rounded font-mono text-gray-500 dark:text-gray-400">v1.2.0</span>
-                </div>
-                <div className="flex items-center gap-3">
-                    <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-gray-100 dark:bg-border-dark/50 border border-transparent dark:border-white/5">
-                        <div className="rounded-full size-2 bg-accent-green animate-pulse"></div>
-                        <span className="text-xs font-medium text-gray-600 font-mono dark:text-gray-300">Sui Testnet</span>
-                    </div>
+    setIsCapturing(true);
+    try {
+      const res = await fetch(imageSrc);
+      const blob = await res.blob();
+      const buffer = await blob.arrayBuffer();
+      const hashBuffer = await crypto.subtle.digest("SHA-256", buffer);
+      const hashHex = Array.from(new Uint8Array(hashBuffer))
+        .map((b) => b.toString(16).padStart(2, "0"))
+        .join("");
 
-                    {/* Wallet Address & Disconnect */}
-                    {account && (
-                        <div className="flex items-center gap-3">
-                            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#334155]">
-                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                <span className="text-sm font-mono text-[#94a3b8]">{shortenAddress(account.address)}</span>
-                            </div>
-                            <button
-                                onClick={() => disconnect()}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium"
-                            >
-                                <span className="material-symbols-outlined text-[16px]">logout</span>
-                                <span className="hidden md:inline">Disconnect</span>
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </header>
+      navigate("/preview", {
+        state: { imageSrc, hash: hashHex, blob },
+      });
+    } finally {
+      setIsCapturing(false);
+    }
+  }, [navigate]);
 
-            {/* Main Content */}
-            <main className="relative flex flex-1 overflow-hidden">
-                {/* Sidebar (Left - Tools) */}
-                <aside className="z-10 flex-col items-center hidden py-6 bg-white border-r border-gray-200 w-16 md:flex gap-6 dark:border-border-dark dark:bg-surface-dark">
-                    <button className="relative p-3 transition-all rounded-xl text-primary bg-primary/10 group">
-                        <span className="material-symbols-outlined">photo_camera</span>
-                    </button>
-                    <button className="relative p-3 text-gray-400 transition-all rounded-xl hover:text-white hover:bg-white/5 group">
-                        <span className="material-symbols-outlined">videocam</span>
-                    </button>
-                    <label className="relative p-3 text-gray-400 transition-all rounded-xl hover:text-white hover:bg-white/5 group cursor-pointer">
-                        <span className="material-symbols-outlined">upload_file</span>
-                        <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={async (e) => {
-                                const file = e.target.files?.[0];
-                                if (file) {
-                                    const blob = file;
-                                    const buffer = await blob.arrayBuffer();
-                                    const hashBuffer = await window.crypto.subtle.digest('SHA-256', buffer);
-                                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-                                    const reader = new FileReader();
-                                    reader.onload = (e) => {
-                                        const imageSrc = e.target?.result as string;
-                                        navigate('/preview', { state: { imageSrc, hash: hashHex, blob } });
-                                    };
-                                    reader.readAsDataURL(file);
-                                }
-                            }}
-                        />
-                    </label>
-                </aside>
-
-                {/* Viewfinder Area */}
-                <section className="relative flex items-center justify-center flex-1 p-4 overflow-hidden bg-black md:p-8 group">
-                    {/* Webcam Feed */}
-                    <div className="absolute inset-0 z-0 flex items-center justify-center">
-                        {cameraError ? (
-                            <div className="text-center text-red-500 bg-black/80 p-6 rounded-xl border border-red-500/50 flex flex-col items-center gap-4 max-w-md">
-                                <span className="material-symbols-outlined text-4xl mb-2">error</span>
-                                <p>{cameraError}</p>
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => {
-                                            navigator.mediaDevices.getUserMedia({ video: true })
-                                                .then(() => {
-                                                    setCameraError(null);
-                                                    window.location.reload();
-                                                })
-                                                .catch(err => handleUserMediaError(err));
-                                        }}
-                                        className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/50 rounded-lg transition-colors font-medium text-sm"
-                                    >
-                                        Retry Camera
-                                    </button>
-                                    <label className="px-4 py-2 bg-primary/20 hover:bg-primary/30 text-primary border border-primary/50 rounded-lg transition-colors font-medium text-sm cursor-pointer flex items-center gap-2">
-                                        <span className="material-symbols-outlined text-sm">upload_file</span>
-                                        Upload Image
-                                        <input
-                                            type="file"
-                                            accept="image/*"
-                                            className="hidden"
-                                            onChange={async (e) => {
-                                                const file = e.target.files?.[0];
-                                                if (file) {
-                                                    const blob = file; // File is a Blob
-                                                    const buffer = await blob.arrayBuffer();
-                                                    const hashBuffer = await window.crypto.subtle.digest('SHA-256', buffer);
-                                                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                                                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-                                                    // Create a preview URL
-                                                    const reader = new FileReader();
-                                                    reader.onload = (e) => {
-                                                        const imageSrc = e.target?.result as string;
-                                                        navigate('/preview', { state: { imageSrc, hash: hashHex, blob } });
-                                                    };
-                                                    reader.readAsDataURL(file);
-                                                }
-                                            }}
-                                        />
-                                    </label>
-                                </div>
-                            </div>
-                        ) : (
-                            <Webcam
-                                audio={false}
-                                ref={webcamRef}
-                                screenshotFormat="image/jpeg"
-                                videoConstraints={{ facingMode }}
-                                onUserMediaError={handleUserMediaError}
-                                className="object-cover w-full h-full opacity-80"
-                            />
-                        )}
-                    </div>
-
-                    {/* Viewfinder UI Layer */}
-                    <div className="relative flex flex-col justify-between w-full h-full max-w-5xl overflow-hidden shadow-2xl aspect-video border border-white/10 rounded-2xl pointer-events-none">
-                        {/* Corner Reticles */}
-                        <div className="absolute top-4 left-4 size-8 border-l-2 border-t-2 border-white/50 rounded-tl-lg"></div>
-                        <div className="absolute top-4 right-4 size-8 border-r-2 border-t-2 border-white/50 rounded-tr-lg"></div>
-                        <div className="absolute bottom-4 left-4 size-8 border-l-2 border-b-2 border-white/50 rounded-bl-lg"></div>
-                        <div className="absolute bottom-4 right-4 size-8 border-r-2 border-b-2 border-white/50 rounded-br-lg"></div>
-
-                        {/* Center Focus */}
-                        <div className="absolute -translate-x-1/2 -translate-y-1/2 border top-1/2 left-1/2 size-16 border-white/30 rounded-full flex items-center justify-center">
-                            <div className="rounded-full size-1 bg-accent-green/80"></div>
-                        </div>
-
-                        {/* Scan Animation */}
-                        <div className="scan-line"></div>
-
-                        {/* Top Info Bar */}
-                        <div className="z-10 flex items-start justify-between p-6 pointer-events-auto">
-                            <div className="flex items-center gap-3 px-4 py-2 rounded-lg glass-panel">
-                                <div className="bg-red-500 rounded-full size-2 animate-pulse"></div>
-                                <span className="text-xs font-bold tracking-wider text-white uppercase">Live Feed</span>
-                            </div>
-                            <div className="flex flex-col items-end gap-1 px-4 py-3 rounded-lg glass-panel">
-                                <div className="flex items-center gap-2 text-accent-green">
-                                    <span className="material-symbols-outlined text-[16px]">fingerprint</span>
-                                    <span className="text-xs font-bold tracking-widest font-mono">HASH GENERATING</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Bottom Controls */}
-                        <div className="z-10 flex flex-col gap-4 p-6 mt-auto pointer-events-auto">
-                            <div className="flex items-center justify-between gap-4 p-2 rounded-xl glass-panel">
-                                <div className="flex items-center gap-1">
-                                    <button
-                                        className={`p-3 transition-colors rounded-lg ${flashOn ? 'text-yellow-400 bg-white/10' : 'text-white hover:bg-white/10'}`}
-                                        onClick={toggleFlash}
-                                    >
-                                        <span className="material-symbols-outlined">{flashOn ? 'flash_on' : 'flash_off'}</span>
-                                    </button>
-                                </div>
-
-                                <button
-                                    onClick={capture}
-                                    disabled={isCapturing || !!cameraError}
-                                    className="group relative flex items-center justify-center gap-3 px-8 h-14 bg-primary hover:bg-primary-hover active:scale-95 text-white font-bold rounded-lg transition-all shadow-[0_0_20px_rgba(23,84,207,0.4)] hover:shadow-[0_0_30px_rgba(23,84,207,0.6)] disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    <span className="material-symbols-outlined">filter_center_focus</span>
-                                    <span className="text-lg tracking-wide uppercase">{isCapturing ? 'Capturing...' : 'Mint & Capture'}</span>
-                                </button>
-
-                                <div className="flex items-center gap-1">
-                                    <button className="p-3 text-white transition-colors rounded-lg hover:bg-white/10" onClick={toggleCamera}>
-                                        <span className="material-symbols-outlined">cameraswitch</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </section>
-            </main>
+  return (
+    <div className="fixed inset-0 bg-black text-white">
+      {/* CAMERA FEED */}
+      {cameraError ? (
+        <div className="absolute inset-0 grid place-items-center p-6">
+          <div className="rounded-xl border border-white/15 bg-black/70 p-5 text-center">
+            <div className="font-semibold mb-2">Camera error</div>
+            <div className="text-sm text-white/70 mb-4">{cameraError}</div>
+            <button
+              className="rounded-lg bg-white text-black px-4 py-2 font-medium"
+              onClick={() => window.location.reload()}
+            >
+              Retry
+            </button>
+          </div>
         </div>
-    );
-};
+      ) : (
+        <>
+          <Webcam
+            ref={webcamRef}
+            audio={false}
+            screenshotFormat="image/jpeg"
+            screenshotQuality={0.95}
+            videoConstraints={videoConstraints}
+            onUserMedia={onUserMedia}
+            onUserMediaError={onUserMediaError}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
 
-export default CameraPage;
+          {/* GRID */}
+          <div className="pointer-events-none absolute inset-0 opacity-40">
+            <div className="absolute inset-x-0 top-1/3 h-px bg-white/40" />
+            <div className="absolute inset-x-0 top-2/3 h-px bg-white/40" />
+            <div className="absolute inset-y-0 left-1/3 w-px bg-white/40" />
+            <div className="absolute inset-y-0 left-2/3 w-px bg-white/40" />
+          </div>
+
+          {/* BOTTOM BAR */}
+          <div
+            className="absolute left-0 right-0 bottom-0 px-6"
+            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}
+          >
+            <div className="mb-5 flex justify-center gap-10 text-lg select-none">
+              <button
+                onClick={() => setMode("video")}
+                className={mode === "video" ? "text-yellow-400" : "text-white/60"}
+              >
+                Video
+              </button>
+              <button
+                onClick={() => setMode("photo")}
+                className={mode === "photo" ? "text-yellow-400" : "text-white/60"}
+              >
+                Photo
+              </button>
+            </div>
+
+            <div className="flex items-center justify-between max-w-md mx-auto">
+              {/* SWITCH CAMERA */}
+              <button
+                onClick={switchCamera}
+                className="pointer-events-auto text-sm px-3 py-2 rounded-lg bg-white/10 border border-white/20"
+              >
+                Switch
+              </button>
+
+              {/* SHUTTER */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (mode === "photo") capturePhoto();
+                }}
+                disabled={!ready || isCapturing || !!cameraError || mode !== "photo"}
+                className="pointer-events-auto disabled:opacity-40"
+              >
+                <div className="h-20 w-20 rounded-full border-4 border-white flex items-center justify-center">
+                  <div className="h-16 w-16 rounded-full bg-white/20" />
+                </div>
+              </button>
+
+              <div className="w-[64px]" />
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
