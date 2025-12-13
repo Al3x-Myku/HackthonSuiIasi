@@ -20,7 +20,7 @@ const MobileNav: React.FC = () => {
                     className={`flex flex-col items-center justify-center w-full h-full gap-1 ${isActive('/gallery') ? 'text-primary' : 'text-[#93a5c8] hover:text-white'}`}
                 >
                     <span className={`material-symbols-outlined ${isActive('/gallery') ? 'filled' : ''}`}>photo_library</span>
-                    <span className="text-[10px] font-medium uppercase tracking-wide">Gallery</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide">Dashboard</span>
                 </button>
 
                 <button
@@ -38,7 +38,7 @@ const MobileNav: React.FC = () => {
                     className={`flex flex-col items-center justify-center w-full h-full gap-1 ${isActive('/profile') ? 'text-primary' : 'text-[#93a5c8] hover:text-white'}`}
                 >
                     <span className={`material-symbols-outlined ${isActive('/profile') ? 'filled' : ''}`}>person</span>
-                    <span className="text-[10px] font-medium uppercase tracking-wide">Profile</span>
+                    <span className="text-[10px] font-medium uppercase tracking-wide">Gallery</span>
                 </button>
             </div>
         </div>

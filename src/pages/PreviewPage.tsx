@@ -129,6 +129,19 @@ const PreviewPage: React.FC = () => {
                             </div>
                         </div>
 
+                        {/* Permanent on-chain warning */}
+                        <div className="p-5 rounded-2xl border border-yellow-500/30 bg-yellow-500/10">
+                            <div className="flex items-start gap-3">
+                                <span className="material-symbols-outlined text-yellow-300">warning</span>
+                                <div>
+                                    <h4 className="font-semibold text-white">Permanent on-chain record</h4>
+                                    <p className="text-sm text-[#cbd5e1] mt-1">
+                                        Once you mint, this proof (hash + storage pointer) will be permanently recorded on-chain.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
                         <button
                             onClick={handleMint}
                             disabled={isMinting}
