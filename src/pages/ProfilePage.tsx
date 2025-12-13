@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useCurrentAccount, useSuiClientQuery, ConnectButton, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { useCurrentAccount, useSuiClientQuery, useSignAndExecuteTransaction, useDisconnectWallet } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
 import { useNavigate } from 'react-router-dom';
 import ImageModal from '../components/ImageModal';
@@ -7,6 +7,12 @@ import ImageModal from '../components/ImageModal';
 const ProfilePage: React.FC = () => {
     const account = useCurrentAccount();
     const navigate = useNavigate();
+    const { mutate: disconnect } = useDisconnectWallet();
+
+    // Helper to shorten wallet address
+    const shortenAddress = (address: string) => {
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    };
 
     const { data: ownedObjects } = useSuiClientQuery(
         'getOwnedObjects',
@@ -95,11 +101,27 @@ const ProfilePage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-6">
                     <div className="items-center hidden gap-6 lg:flex">
-                        <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/')}>Gallery</a>
+                        <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/gallery')}>Gallery</a>
                         <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/camera')}>Upload</a>
                         <a className="text-white hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">My Profile</a>
                     </div>
-                    <ConnectButton className="!bg-primary !text-white !font-bold !rounded-lg !px-4 !py-2 !h-10 !flex !items-center !gap-2 hover:!bg-primary/90 transition-colors shadow-lg shadow-primary/20" />
+
+                    {/* Wallet Address & Disconnect */}
+                    {account && (
+                        <div className="flex items-center gap-3">
+                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#334155]">
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span className="text-sm font-mono text-[#94a3b8]">{shortenAddress(account.address)}</span>
+                            </div>
+                            <button
+                                onClick={() => disconnect()}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">logout</span>
+                                Disconnect
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
 

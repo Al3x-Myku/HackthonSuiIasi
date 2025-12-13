@@ -1,15 +1,22 @@
 import React, { useRef, useCallback, useState } from 'react';
 import Webcam from 'react-webcam';
 import { useNavigate } from 'react-router-dom';
-import { ConnectButton } from '@mysten/dapp-kit';
+import { useCurrentAccount, useDisconnectWallet } from '@mysten/dapp-kit';
 
 const CameraPage: React.FC = () => {
     const webcamRef = useRef<Webcam>(null);
     const navigate = useNavigate();
+    const account = useCurrentAccount();
+    const { mutate: disconnect } = useDisconnectWallet();
     const [isCapturing, setIsCapturing] = useState(false);
     const [cameraError, setCameraError] = useState<string | null>(null);
     const [facingMode, setFacingMode] = useState<"user" | "environment">("environment");
     const [flashOn, setFlashOn] = useState(false);
+
+    // Helper to shorten wallet address
+    const shortenAddress = (address: string) => {
+        return `${address.slice(0, 6)}...${address.slice(-4)}`;
+    };
 
     const toggleFlash = () => {
         setFlashOn(!flashOn);
@@ -91,7 +98,23 @@ const CameraPage: React.FC = () => {
                         <div className="rounded-full size-2 bg-accent-green animate-pulse"></div>
                         <span className="text-xs font-medium text-gray-600 font-mono dark:text-gray-300">Sui Testnet</span>
                     </div>
-                    <ConnectButton className="!bg-primary !text-white !font-bold !rounded-lg !px-4 !py-2 !h-10 !flex !items-center !gap-2 hover:!bg-primary-hover transition-colors shadow-lg shadow-primary/20" />
+
+                    {/* Wallet Address & Disconnect */}
+                    {account && (
+                        <div className="flex items-center gap-3">
+                            <div className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#334155]">
+                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                                <span className="text-sm font-mono text-[#94a3b8]">{shortenAddress(account.address)}</span>
+                            </div>
+                            <button
+                                onClick={() => disconnect()}
+                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium"
+                            >
+                                <span className="material-symbols-outlined text-[16px]">logout</span>
+                                <span className="hidden md:inline">Disconnect</span>
+                            </button>
+                        </div>
+                    )}
                 </div>
             </header>
 

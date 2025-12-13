@@ -7,14 +7,19 @@ const MobileNav: React.FC = () => {
 
     const isActive = (path: string) => location.pathname === path;
 
+    // Hide on landing page
+    if (location.pathname === '/') {
+        return null;
+    }
+
     return (
         <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#111722]/95 backdrop-blur-md border-t border-[#243047] pb-safe lg:hidden">
             <div className="flex items-center justify-around h-16 px-2">
                 <button
-                    onClick={() => navigate('/')}
-                    className={`flex flex-col items-center justify-center w-full h-full gap-1 ${isActive('/') ? 'text-primary' : 'text-[#93a5c8] hover:text-white'}`}
+                    onClick={() => navigate('/gallery')}
+                    className={`flex flex-col items-center justify-center w-full h-full gap-1 ${isActive('/gallery') ? 'text-primary' : 'text-[#93a5c8] hover:text-white'}`}
                 >
-                    <span className={`material-symbols-outlined ${isActive('/') ? 'filled' : ''}`}>photo_library</span>
+                    <span className={`material-symbols-outlined ${isActive('/gallery') ? 'filled' : ''}`}>photo_library</span>
                     <span className="text-[10px] font-medium uppercase tracking-wide">Gallery</span>
                 </button>
 
@@ -41,3 +46,4 @@ const MobileNav: React.FC = () => {
 };
 
 export default MobileNav;
+
