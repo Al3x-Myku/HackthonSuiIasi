@@ -57,6 +57,18 @@ const LandingPage: React.FC = () => {
         return num.toString();
     };
 
+    // Scroll to login panel and highlight
+    const scrollToLogin = () => {
+        const loginPanel = document.getElementById('login-panel');
+        if (loginPanel) {
+            loginPanel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            loginPanel.classList.add('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-[#0B1121]');
+            setTimeout(() => {
+                loginPanel.classList.remove('ring-2', 'ring-primary', 'ring-offset-2', 'ring-offset-[#0B1121]');
+            }, 2000);
+        }
+    };
+
     return (
         <div className={`min-h-screen font-sans antialiased transition-colors duration-200 ${isDark ? 'dark bg-[#0B1121] text-white' : 'bg-gray-100 text-gray-900'}`}>
             {/* Navigation */}
@@ -70,9 +82,9 @@ const LandingPage: React.FC = () => {
                             <span className="text-xl font-bold tracking-tight">TRUTHLENS</span>
                         </div>
                         <div className="hidden md:flex items-center space-x-8">
-                            <a className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-primary'}`} href="#">Gallery</a>
-                            <a className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-primary'}`} href="#">About</a>
-                            <a className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-primary'}`} href="#">Docs</a>
+                            <button onClick={scrollToLogin} className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-primary'}`}>Gallery</button>
+                            <button onClick={scrollToLogin} className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-primary'}`}>About</button>
+                            <button onClick={scrollToLogin} className={`text-sm font-medium transition-colors ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-500 hover:text-primary'}`}>Docs</button>
                         </div>
                         <div className="flex items-center space-x-4">
                             <button
@@ -151,7 +163,7 @@ const LandingPage: React.FC = () => {
                     {/* Right Side - Login Panel */}
                     <div className="relative">
                         <div className="absolute -top-12 -right-12 w-24 h-24 bg-blue-500 rounded-full blur-2xl opacity-20 animate-pulse"></div>
-                        <div className={`p-8 rounded-2xl shadow-2xl relative z-10 w-full max-w-md mx-auto backdrop-blur-xl ${isDark ? 'bg-[#151e32]/70 border border-white/10' : 'bg-white/80 border border-gray-200'}`}>
+                        <div id="login-panel" className={`p-8 rounded-2xl shadow-2xl relative z-10 w-full max-w-md mx-auto backdrop-blur-xl transition-all duration-300 ${isDark ? 'bg-[#151e32]/70 border border-white/10' : 'bg-white/80 border border-gray-200'}`}>
                             <div className="text-center mb-8">
                                 <h2 className="text-2xl font-bold mb-2">Welcome Back</h2>
                                 <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>Connect your wallet to access your gallery and mint new proofs.</p>
