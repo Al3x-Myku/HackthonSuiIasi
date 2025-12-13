@@ -101,9 +101,10 @@ const ProfilePage: React.FC = () => {
                 </div>
                 <div className="flex items-center gap-6">
                     <div className="items-center hidden gap-6 lg:flex">
-                        <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/gallery')}>Gallery</a>
+                        <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/gallery')}>Dashboard</a>
+                        <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/feed')}>Feed</a>
                         <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/camera')}>Upload</a>
-                        <a className="text-white hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">My Profile</a>
+                        <a className="text-white hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Gallery</a>
                     </div>
 
                     {/* Wallet Address & Disconnect */}
@@ -131,7 +132,7 @@ const ProfilePage: React.FC = () => {
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-accent-green flex items-center justify-center mb-4 shadow-lg shadow-primary/20">
                             <span className="material-symbols-outlined text-4xl text-white">person</span>
                         </div>
-                        <h1 className="text-3xl font-bold text-white mb-2">My Collection</h1>
+                        <h1 className="text-3xl font-bold text-white mb-2">Gallery</h1>
                         <p className="text-[#94a3b8] font-mono text-sm bg-[#1e293b] px-3 py-1 rounded-full border border-[#334155]">
                             {account ? account.address : 'Please connect your wallet'}
                         </p>

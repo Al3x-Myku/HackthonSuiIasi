@@ -8,6 +8,7 @@ import CameraPage from './pages/CameraPage';
 import PreviewPage from './pages/PreviewPage';
 import ProfilePage from './pages/ProfilePage';
 import ProofPage from './pages/ProofPage';
+import FeedPage from './pages/FeedPage';
 import MobileNav from './components/MobileNav';
 import ProtectedRoute from './components/ProtectedRoute';
 
@@ -28,6 +29,7 @@ function App() {
             <Routes>
               <Route path="/" element={<LandingPage />} />
               <Route path="/gallery" element={<ProtectedRoute><GalleryPage /></ProtectedRoute>} />
+              <Route path="/feed" element={<ProtectedRoute><FeedPage /></ProtectedRoute>} />
               <Route path="/camera" element={<ProtectedRoute><CameraPage /></ProtectedRoute>} />
               <Route path="/preview" element={<ProtectedRoute><PreviewPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

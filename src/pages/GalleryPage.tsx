@@ -1,335 +1,129 @@
-import React, { useState } from 'react';
-import { useCurrentAccount, useSuiClientQuery, useSignAndExecuteTransaction, useDisconnectWallet } from '@mysten/dapp-kit';
-import { Transaction } from '@mysten/sui/transactions';
-import { useNavigate } from 'react-router-dom';
-import ImageModal from '../components/ImageModal';
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { useCurrentAccount, useDisconnectWallet } from "@mysten/dapp-kit";
 
-const GalleryPage: React.FC = () => {
-    const account = useCurrentAccount();
-    const navigate = useNavigate();
-    const { mutate: disconnect } = useDisconnectWallet();
+// NOTE: This route is still `/gallery` for now, but the page is the Dashboard.
+// (Requested: "Gallery" -> "Dashboard")
 
-    const [filter, setFilter] = useState<'all' | 'photo' | 'video' | 'verified'>('all');
+const shortenAddress = (address: string) => `${address.slice(0, 6)}...${address.slice(-4)}`;
 
-    // Helper to shorten wallet address
-    const shortenAddress = (address: string) => {
-        return `${address.slice(0, 6)}...${address.slice(-4)}`;
-    };
+const StatCard = ({
+  title,
+  value,
+  icon,
+  helper,
+}: {
+  title: string;
+  value: string;
+  icon: string;
+  helper?: string;
+}) => (
+  <div className="rounded-2xl border border-white/10 bg-[#0b1220]/40 backdrop-blur p-6">
+    <div className="flex items-start justify-between gap-4">
+      <div>
+        <div className="text-xs uppercase tracking-wider text-[#94a3b8]">{title}</div>
+        <div className="text-3xl font-bold text-white mt-2">{value}</div>
+        {helper ? <div className="text-xs text-[#94a3b8] mt-2">{helper}</div> : null}
+      </div>
+      <div className="size-12 rounded-xl bg-primary/15 border border-primary/20 flex items-center justify-center">
+        <span className="material-symbols-outlined text-primary">{icon}</span>
+      </div>
+    </div>
+  </div>
+);
 
-    // Mock data for now since we don't have real NFTs on testnet yet for the user to see immediately
-    // In a real app, we would merge this with ownedObjects
-    // Mock data for now since we don't have real NFTs on testnet yet for the user to see immediately
-    // In a real app, we would merge this with ownedObjects
-    const { data: ownedObjects } = useSuiClientQuery(
-        'getOwnedObjects',
-        {
-            owner: account?.address || '',
-            filter: { StructType: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::MediaProof' },
-            options: { showContent: true, showDisplay: true, showType: true },
-        },
-        { enabled: !!account }
-    );
+const DashboardPage: React.FC = () => {
+  const navigate = useNavigate();
+  const account = useCurrentAccount();
+  const { mutate: disconnect } = useDisconnectWallet();
 
-    const { data: oldOwnedObjects } = useSuiClientQuery(
-        'getOwnedObjects',
-        {
-            owner: account?.address || '',
-            filter: { StructType: '0x47900a725d9aa848db64b588d1dc4ba3ecc5558f105b1c8f346b35cb2a3cd62b::truth_lens::MediaProof' },
-            options: { showContent: true, showDisplay: true, showType: true },
-        },
-        { enabled: !!account }
-    );
+  return (
+    <div className="flex flex-col min-h-screen overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display">
+      {/* Header */}
+      <header className="glass-panel sticky top-0 z-50 flex items-center justify-between whitespace-nowrap px-6 py-3 border-b-0 border-b-[#243047]/50">
+        <div className="flex items-center gap-8">
+          <div className="flex items-center gap-3 text-white cursor-pointer" onClick={() => navigate("/")}>
+            <div className="flex items-center justify-center size-8 text-primary">
+              <span className="material-symbols-outlined text-[32px]">photo_filter</span>
+            </div>
+            <h2 className="text-white text-xl font-bold leading-tight tracking-[-0.015em] uppercase">TruthLens</h2>
+          </div>
+        </div>
 
-    const processItems = (data: any[]) => {
-        return data?.map((obj: any) => {
-            const content = obj.data?.content?.fields;
-            if (!content) return null;
-            return {
-                id: obj.data?.objectId,
-                type: 'photo',
-                src: `https://aggregator.walrus-testnet.walrus.space/v1/blobs/${content.blob_id}`,
-                title: content.description || 'Untitled',
-                user: 'You',
-                verified: true,
-                timestamp: content.timestamp,
-                objectType: obj.data?.type
-            };
-        }).filter(Boolean) || [];
-    };
+        <div className="flex items-center gap-6">
+          <div className="items-center hidden gap-6 lg:flex">
+            <a className="text-white hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Dashboard</a>
+            <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate("/feed")}>Feed</a>
+            <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate("/camera")}>Upload</a>
+            <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate("/profile")}>Gallery</a>
+          </div>
 
-    const items = [
-        ...processItems(ownedObjects?.data || []),
-        ...processItems(oldOwnedObjects?.data || [])
-    ];
+          {account && (
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#334155]">
+                <div className="w-2 h-2 rounded-full bg-green-500"></div>
+                <span className="text-sm font-mono text-[#94a3b8]">{shortenAddress(account.address)}</span>
+              </div>
+              <button
+                onClick={() => disconnect()}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium"
+              >
+                <span className="material-symbols-outlined text-[16px]">logout</span>
+                Disconnect
+              </button>
+            </div>
+          )}
+        </div>
+      </header>
 
-    const filteredItems = items.filter((item: any) => {
-        if (filter === 'all') return true;
-        if (filter === 'verified') return item.verified;
-        return item.type === filter;
-    });
-
-    const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
-
-    const handleBurn = (item: any) => {
-        const tx = new Transaction();
-
-        if (item.objectType.includes('0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7')) {
-            // New contract: Burn it
-            tx.moveCall({
-                target: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::burn',
-                arguments: [tx.object(item.id)],
-            });
-        } else {
-            // Old contract: Transfer to 0x0 (Burn address)
-            tx.transferObjects([tx.object(item.id)], '0x0000000000000000000000000000000000000000000000000000000000000000');
-        }
-
-        signAndExecuteTransaction({
-            transaction: tx,
-        }, {
-            onSuccess: () => {
-                console.log('Burned/Deleted successfully');
-                window.location.reload();
-            },
-            onError: (err) => {
-                console.error('Burn failed:', err);
-            }
-        });
-    };
-
-    const [selectedItem, setSelectedItem] = useState<any>(null);
-
-    return (
-        <div className="flex flex-col min-h-screen overflow-hidden bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display">
-            {/* Top Navigation Bar */}
-            <header className="glass-panel sticky top-0 z-50 flex items-center justify-between whitespace-nowrap px-6 py-3 border-b-0 border-b-[#243047]/50">
-                <div className="flex items-center gap-8">
-                    <div className="flex items-center gap-3 text-white cursor-pointer" onClick={() => navigate('/')}>
-                        <div className="flex items-center justify-center size-8 text-primary">
-                            <span className="material-symbols-outlined text-[32px]">photo_filter</span>
-                        </div>
-                        <h2 className="text-white text-xl font-bold leading-tight tracking-[-0.015em] uppercase">TruthLens</h2>
-                    </div>
-                    {/* Search Bar */}
-                    <label className="flex-col hidden w-40 h-10 md:flex min-w-96">
-                        <div className="flex w-full flex-1 items-stretch rounded-lg h-full bg-[#1e293b] border border-[#334155] focus-within:border-primary transition-colors">
-                            <div className="text-[#94a3b8] flex items-center justify-center pl-3">
-                                <span className="material-symbols-outlined text-[20px]">search</span>
-                            </div>
-                            <input
-                                className="flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg bg-transparent text-white focus:outline-0 focus:ring-0 border-none h-full placeholder:text-[#64748b] px-3 text-sm font-normal leading-normal"
-                                placeholder="Search by TxID, Hash, or User..."
-                                defaultValue=""
-                            />
-                        </div>
-                    </label>
-                </div>
-                <div className="flex items-center gap-6">
-                    <div className="items-center hidden gap-6 lg:flex">
-                        <a className="text-white hover:text-primary transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/gallery')}>Gallery</a>
-                        <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/camera')}>Upload</a>
-                        <a className="text-[#94a3b8] hover:text-white transition-colors text-sm font-medium leading-normal" href="#" onClick={() => navigate('/profile')}>My Profile</a>
-                    </div>
-
-                    {/* Wallet Address & Disconnect */}
-                    {account && (
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-[#1e293b] border border-[#334155]">
-                                <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                                <span className="text-sm font-mono text-[#94a3b8]">{shortenAddress(account.address)}</span>
-                            </div>
-                            <button
-                                onClick={() => disconnect()}
-                                className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/30 text-red-400 hover:bg-red-500/20 transition-colors text-sm font-medium"
-                            >
-                                <span className="material-symbols-outlined text-[16px]">logout</span>
-                                Disconnect
-                            </button>
-                        </div>
-                    )}
-                </div>
-            </header>
-
-            <div className="flex flex-1 overflow-hidden">
-                {/* Sidebar Filters */}
-                <aside className="w-72 hidden md:flex flex-col border-r border-[#243047]/50 bg-[#0d1526] overflow-y-auto custom-scrollbar">
-                    {/* ... existing sidebar content ... */}
-                    <div className="flex flex-col gap-6 p-5">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold tracking-wider text-white uppercase text-opacity-70">Filters</h3>
-                            <button className="text-xs font-medium transition-colors text-primary hover:text-white" onClick={() => setFilter('all')}>Reset</button>
-                        </div>
-                        {/* Accordions */}
-                        <div className="flex flex-col gap-3">
-                            <details className="group" open>
-                                <summary className="flex cursor-pointer items-center justify-between py-2 text-white hover:text-primary transition-colors list-none">
-                                    <span className="text-sm font-medium">Date Range</span>
-                                    <span className="material-symbols-outlined text-[20px] transition-transform group-open:rotate-180">expand_more</span>
-                                </summary>
-                                <div className="px-1 pb-4 pt-2">
-                                    <div className="flex flex-col gap-2">
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input defaultChecked className="w-4 h-4 border-gray-600 text-primary bg-[#1e293b] focus:ring-primary focus:ring-2" name="date" type="radio" />
-                                            <span className="text-[#94a3b8] text-sm">All Time</span>
-                                        </label>
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input className="w-4 h-4 border-gray-600 text-primary bg-[#1e293b] focus:ring-primary focus:ring-2" name="date" type="radio" />
-                                            <span className="text-[#94a3b8] text-sm">Last 24 Hours</span>
-                                        </label>
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input className="w-4 h-4 border-gray-600 text-primary bg-[#1e293b] focus:ring-primary focus:ring-2" name="date" type="radio" />
-                                            <span className="text-[#94a3b8] text-sm">Last Week</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </details>
-                            <div className="h-px bg-[#243047]"></div>
-                            <details className="group">
-                                <summary className="flex cursor-pointer items-center justify-between py-2 text-white hover:text-primary transition-colors list-none">
-                                    <span className="text-sm font-medium">Location</span>
-                                    <span className="material-symbols-outlined text-[20px] transition-transform group-open:rotate-180">expand_more</span>
-                                </summary>
-                                <div className="pb-4 pt-2">
-                                    <input className="w-full bg-[#1e293b] border border-[#334155] rounded px-3 py-1.5 text-sm text-white placeholder-[#64748b] focus:outline-none focus:border-primary" placeholder="Enter city or country..." />
-                                </div>
-                            </details>
-                            <div className="h-px bg-[#243047]"></div>
-                            <details className="group" open>
-                                <summary className="flex cursor-pointer items-center justify-between py-2 text-white hover:text-primary transition-colors list-none">
-                                    <span className="text-sm font-medium">Camera Type</span>
-                                    <span className="material-symbols-outlined text-[20px] transition-transform group-open:rotate-180">expand_more</span>
-                                </summary>
-                                <div className="px-1 pb-4 pt-2">
-                                    <div className="flex flex-col gap-2">
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input defaultChecked className="w-4 h-4 rounded text-primary bg-[#1e293b] border-gray-600 focus:ring-primary focus:ring-offset-gray-800" type="checkbox" />
-                                            <span className="text-[#94a3b8] text-sm">DSLR / Mirrorless</span>
-                                        </label>
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input defaultChecked className="w-4 h-4 rounded text-primary bg-[#1e293b] border-gray-600 focus:ring-primary focus:ring-offset-gray-800" type="checkbox" />
-                                            <span className="text-[#94a3b8] text-sm">Mobile</span>
-                                        </label>
-                                        <label className="flex items-center gap-3 cursor-pointer">
-                                            <input className="w-4 h-4 rounded text-primary bg-[#1e293b] border-gray-600 focus:ring-primary focus:ring-offset-gray-800" type="checkbox" />
-                                            <span className="text-[#94a3b8] text-sm">Drone</span>
-                                        </label>
-                                    </div>
-                                </div>
-                            </details>
-                        </div>
-                    </div>
-                </aside>
-
-                {/* Main Content */}
-                <main className="relative flex-1 overflow-y-auto custom-scrollbar">
-                    <div className="max-w-[1400px] mx-auto p-4 md:p-8 lg:p-10">
-                        {/* Headline & Header */}
-                        <div className="flex flex-col justify-between gap-4 mb-8 md:flex-row md:items-end">
-                            <div>
-                                <h1 className="text-white text-[32px] md:text-[40px] font-bold leading-tight mb-2">Live Feed</h1>
-                                <p className="text-[#94a3b8] text-base">Explore the latest immutable moments captured worldwide.</p>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <span className="text-[#64748b] text-sm font-medium">Sort by:</span>
-                                <select className="bg-[#1e293b] border-none text-white text-sm font-medium rounded-lg cursor-pointer focus:ring-1 focus:ring-primary py-2 pl-3 pr-8">
-                                    <option>Newest Verified</option>
-                                    <option>Oldest</option>
-                                    <option>Most Viewed</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        {/* Category Chips */}
-                        <div className="flex gap-3 pb-2 mb-8 overflow-x-auto scrollbar-hide">
-                            <button
-                                onClick={() => setFilter('all')}
-                                className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full pl-5 pr-5 transition-all ${filter === 'all' ? 'bg-primary text-white shadow-[0_0_15px_rgba(23,84,207,0.4)]' : 'bg-[#1e293b] border border-[#334155] text-[#94a3b8] hover:border-primary/50 hover:text-white'}`}
-                            >
-                                <span className="text-sm font-bold">All Media</span>
-                            </button>
-                            <button
-                                onClick={() => setFilter('photo')}
-                                className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full pl-5 pr-5 transition-all ${filter === 'photo' ? 'bg-primary text-white shadow-[0_0_15px_rgba(23,84,207,0.4)]' : 'bg-[#1e293b] border border-[#334155] text-[#94a3b8] hover:border-primary/50 hover:text-white'}`}
-                            >
-                                <span className="text-sm font-medium">Photos</span>
-                            </button>
-                            <button
-                                onClick={() => setFilter('video')}
-                                className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full pl-5 pr-5 transition-all ${filter === 'video' ? 'bg-primary text-white shadow-[0_0_15px_rgba(23,84,207,0.4)]' : 'bg-[#1e293b] border border-[#334155] text-[#94a3b8] hover:border-primary/50 hover:text-white'}`}
-                            >
-                                <span className="text-sm font-medium">Videos</span>
-                            </button>
-                            <button
-                                onClick={() => setFilter('verified')}
-                                className={`flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full pl-4 pr-5 transition-all group ${filter === 'verified' ? 'bg-verified/20 border-verified text-verified' : 'bg-[#1e293b] border border-[#334155] text-verified hover:border-verified/50'}`}
-                            >
-                                <span className="material-symbols-outlined text-[18px] group-hover:neon-glow transition-all">verified_user</span>
-                                <span className="text-sm font-medium group-hover:neon-glow transition-all">Verified Only</span>
-                            </button>
-                        </div>
-
-                        {/* Masonry Grid */}
-                        <div className="gap-6 space-y-6 columns-1 sm:columns-2 lg:columns-3 xl:columns-4">
-                            {filteredItems.length > 0 ? (
-                                filteredItems.map((item: any) => (
-                                    <div
-                                        key={item.id}
-                                        onClick={() => setSelectedItem(item)}
-                                        className="group relative break-inside-avoid rounded-2xl overflow-hidden bg-surface-dark border border-[#334155]/50 hover:border-primary/50 transition-all duration-300 cursor-pointer shadow-lg shadow-black/20 hover:shadow-primary/10"
-                                    >
-                                        {item.verified && (
-                                            <div className="absolute top-3 right-3 z-20 bg-[#0b1221]/80 backdrop-blur-sm rounded-full px-2 py-1 flex items-center gap-1 border border-verified/30">
-                                                <span className="material-symbols-outlined text-verified text-[16px]">verified</span>
-                                                <span className="text-verified text-[10px] font-bold uppercase tracking-wide">Verified</span>
-                                            </div>
-                                        )}
-                                        <img className="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-500" src={item.src} alt={item.title} />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-[#0b1221] via-[#0b1221]/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-5">
-                                            <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
-                                                <h3 className="mb-1 text-lg font-bold text-white">{item.title}</h3>
-                                                <div className="flex items-center gap-2 mb-3">
-                                                    <div className="w-5 h-5 rounded-full border border-white/20 bg-gray-500"></div>
-                                                    <span className="text-xs font-medium text-white/80">{item.user}</span>
-                                                </div>
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        handleBurn(item);
-                                                    }}
-                                                    className="w-full py-2 bg-red-500/20 hover:bg-red-500/30 text-red-500 border border-red-500/50 rounded-lg transition-colors font-bold text-xs uppercase tracking-wider"
-                                                >
-                                                    Delete
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))
-                            ) : (
-                                <div className="col-span-full flex flex-col items-center justify-center py-20 text-[#64748b]">
-                                    <span className="material-symbols-outlined text-6xl mb-4 opacity-50">image_not_supported</span>
-                                    <p className="text-lg font-medium">No media found</p>
-                                    <p className="text-sm">Be the first to mint a TruthLens proof!</p>
-                                    <button
-                                        onClick={() => navigate('/camera')}
-                                        className="mt-6 px-6 py-3 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20"
-                                    >
-                                        Capture New Media
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </main>
+      {/* Dashboard content only */}
+      <main className="flex-1 overflow-y-auto custom-scrollbar p-6 md:p-10">
+        <div className="max-w-[1200px] mx-auto">
+          <div className="flex items-center justify-between flex-wrap gap-4 mb-6">
+            <div>
+              <h1 className="text-3xl font-bold text-white">Dashboard</h1>
+              <p className="text-[#94a3b8] mt-1">Quick status and actions.</p>
             </div>
 
-            <ImageModal
-                isOpen={!!selectedItem}
-                onClose={() => setSelectedItem(null)}
-                item={selectedItem}
-                onDelete={handleBurn}
-            />
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => navigate("/camera")}
+                className="inline-flex items-center gap-2 rounded-xl bg-primary hover:bg-primary-hover text-white font-semibold px-4 py-3 transition-colors"
+              >
+                <span className="material-symbols-outlined">photo_camera</span>
+                Capture / Upload
+              </button>
+              <button
+                onClick={() => navigate("/profile")}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/10 bg-black/20 hover:bg-black/30 text-white font-semibold px-4 py-3 transition-colors"
+              >
+                <span className="material-symbols-outlined">photo_library</span>
+                Open Gallery
+              </button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <StatCard title="Captured proofs" value="—" icon="verified" helper="Hook up indexing later." />
+            <StatCard title="On-chain permanence" value="Immutable" icon="lock" helper="Proofs are verifiable forever." />
+            <StatCard title="Network" value="Testnet" icon="public" helper="Switchable in provider config." />
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-[#0b1220]/40 backdrop-blur p-6">
+            <div className="flex items-center gap-3 mb-2">
+              <span className="material-symbols-outlined text-primary">insights</span>
+              <h2 className="text-xl font-bold text-white">What&apos;s next</h2>
+            </div>
+            <ul className="text-[#94a3b8] list-disc pl-5 space-y-1">
+              <li>Feed: public proofs and trending content.</li>
+              <li>Dashboard stats: real counts from owned objects / indexer.</li>
+              <li>More capture metadata surfaced in proof views.</li>
+            </ul>
+          </div>
         </div>
-    );
+      </main>
+    </div>
+  );
 };
 
-export default GalleryPage;
+export default DashboardPage;

@@ -25,12 +25,7 @@ function UploadIcon({ className = "" }: { className?: string }) {
 function SwitchIcon({ className = "" }: { className?: string }) {
   return (
     <svg className={`block ${className}`} viewBox="0 0 24 24" fill="none" aria-hidden="true">
-      <path
-        d="M20 12a8 8 0 0 0-14.928-4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <path d="M20 12a8 8 0 0 0-14.928-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path
         d="M5 4v4h4"
         stroke="currentColor"
@@ -38,12 +33,7 @@ function SwitchIcon({ className = "" }: { className?: string }) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
-      <path
-        d="M4 12a8 8 0 0 0 14.928 4"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-      />
+      <path d="M4 12a8 8 0 0 0 14.928 4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
       <path
         d="M19 20v-4h-4"
         stroke="currentColor"
@@ -88,6 +78,29 @@ export default function CameraPage() {
     toastTimerRef.current = window.setTimeout(() => setUiError(null), 2600);
   };
 
+  const getLocationString = async (): Promise<string> => {
+    if (!("geolocation" in navigator)) return "Unknown Location";
+    try {
+      const pos = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 5000,
+          maximumAge: 0,
+        });
+      });
+
+      const lat = pos.coords.latitude;
+      const lon = pos.coords.longitude;
+      const latDir = lat >= 0 ? "N" : "S";
+      const lonDir = lon >= 0 ? "E" : "W";
+
+      return `${Math.abs(lat).toFixed(4)}° ${latDir}, ${Math.abs(lon).toFixed(4)}° ${lonDir}`;
+    } catch (e) {
+      console.warn("Geolocation denied/failed", e);
+      return "Location Denied";
+    }
+  };
+
   const videoConstraints = {
     facingMode,
     width: { ideal: 1920 },
@@ -125,7 +138,8 @@ export default function CameraPage() {
         r.readAsDataURL(file);
       });
 
-      navigate("/preview", { state: { imageSrc, hash: hashHex, blob: file } });
+      const location = await getLocationString();
+      navigate("/preview", { state: { imageSrc, hash: hashHex, blob: file, location } });
     } finally {
       setIsCapturing(false);
     }
@@ -150,7 +164,8 @@ export default function CameraPage() {
         .map((b) => b.toString(16).padStart(2, "0"))
         .join("");
 
-      navigate("/preview", { state: { imageSrc, hash: hashHex, blob } });
+      const location = await getLocationString();
+      navigate("/preview", { state: { imageSrc, hash: hashHex, blob, location } });
     } finally {
       setIsCapturing(false);
     }
@@ -185,10 +200,7 @@ export default function CameraPage() {
           />
 
           {/* TOP-LEFT BACK BUTTON */}
-          <div
-            className="absolute top-0 left-0 p-4"
-            style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}
-          >
+          <div className="absolute top-0 left-0 p-4" style={{ paddingTop: "calc(env(safe-area-inset-top) + 12px)" }}>
             <button
               type="button"
               onClick={() => navigate("/gallery")}
@@ -196,7 +208,7 @@ export default function CameraPage() {
                          bg-black/60 border border-white/25 backdrop-blur
                          shadow-[0_8px_24px_rgba(0,0,0,0.55)]
                          hover:bg-black/70 active:scale-95 transition"
-              aria-label="Back to gallery"
+              aria-label="Back to dashboard"
             >
               <BackIcon className="h-7 w-7 -translate-x-[1.5px]" />
             </button>
@@ -216,20 +228,17 @@ export default function CameraPage() {
           )}
 
           {/* Bottom gradient for visibility */}
-          <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-40 bg-gradient-to-t from-black/70 to-transparent" />
+          <div className="pointer-events-none absolute left-0 right-0 bottom-0 h-44 bg-gradient-to-t from-black/80 to-transparent" />
 
           {/* BOTTOM CONTROLS */}
-          <div
-            className="absolute left-0 right-0 bottom-0 px-6"
-            style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}
-          >
+          <div className="absolute left-0 right-0 bottom-0 px-6" style={{ paddingBottom: "calc(env(safe-area-inset-bottom) + 20px)" }}>
             <div className="flex items-center justify-between max-w-md mx-auto">
               {/* UPLOAD */}
               <label
                 className="cursor-pointer pointer-events-auto inline-flex items-center justify-center h-14 w-14 rounded-full
                            bg-white/20 border border-white/30
                            shadow-[0_10px_30px_rgba(0,0,0,0.55)]
-                           hover:bg-white/25 active:scale-95 transition"
+                           hover:bg-white/30 active:scale-95 transition"
                 aria-label="Upload image"
               >
                 <UploadIcon className="h-7 w-7 -translate-x-[1px]" />
@@ -241,7 +250,6 @@ export default function CameraPage() {
                     const f = e.target.files?.[0];
                     if (!f) return;
 
-                    // strict: allow only images
                     if (!f.type.startsWith("image/")) {
                       showUiError("Doar imagini (jpg/png/webp/heic).");
                       e.currentTarget.value = "";
@@ -264,10 +272,10 @@ export default function CameraPage() {
               >
                 <div
                   className="h-24 w-24 rounded-full border-[5px] border-white
-                            shadow-[0_14px_40px_rgba(0,0,0,0.6)]
-                            flex items-center justify-center
-                            transition
-                            group-hover:border-white/80"
+                             shadow-[0_14px_40px_rgba(0,0,0,0.6)]
+                             flex items-center justify-center
+                             transition
+                             group-hover:border-white/80"
                 >
                   <div className="h-19 w-19 rounded-full bg-white/25 transition group-hover:bg-white/35" />
                 </div>
@@ -280,7 +288,7 @@ export default function CameraPage() {
                 className="cursor-pointer pointer-events-auto inline-flex items-center justify-center h-14 w-14 rounded-full
                            bg-white/20 border border-white/30
                            shadow-[0_10px_30px_rgba(0,0,0,0.55)]
-                           hover:bg-white/25 active:scale-95 transition"
+                           hover:bg-white/30 active:scale-95 transition"
                 aria-label="Switch camera"
               >
                 <SwitchIcon className="h-7 w-7" />
