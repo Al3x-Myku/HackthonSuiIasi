@@ -29,8 +29,9 @@ const PreviewPage: React.FC = () => {
             const formData = new FormData();
             formData.append('image', imageBlob);
 
-            // Expecting the API to be running locally on port 5000
-            const response = await fetch('http://localhost:5000/detect', {
+            // Expecting the API to be running locally on port 5000 or defined in env
+            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+            const response = await fetch(`${API_URL}/detect`, {
                 method: 'POST',
                 body: formData,
             });
@@ -148,9 +149,9 @@ const PreviewPage: React.FC = () => {
                     <div className="flex flex-col gap-6 justify-center">
                         {/* AI Detection Result */}
                         <div className={`p-4 rounded-2xl border ${isDetecting ? 'border-gray-500/30 bg-gray-500/10' :
-                                detectionError ? 'border-yellow-500/30 bg-yellow-500/10' :
-                                    aiResult?.isFake ? 'border-red-500/30 bg-red-500/10' :
-                                        'border-green-500/30 bg-green-500/10'
+                            detectionError ? 'border-yellow-500/30 bg-yellow-500/10' :
+                                aiResult?.isFake ? 'border-red-500/30 bg-red-500/10' :
+                                    'border-green-500/30 bg-green-500/10'
                             }`}>
                             <h3 className="text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
                                 <span className="material-symbols-outlined">
