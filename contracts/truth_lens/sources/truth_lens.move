@@ -91,7 +91,6 @@ module truth_lens::truth_lens {
         transfer::public_transfer(proof, minter);
     }
 
-    /// Burn (destroy) a MediaProof
     public fun burn(proof: MediaProof) {
         let MediaProof {
             id,
