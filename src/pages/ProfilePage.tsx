@@ -3,6 +3,7 @@ import { useCurrentAccount, useSuiClientQuery, useSignAndExecuteTransaction, use
 import { Transaction } from '@mysten/sui/transactions';
 import { useNavigate } from 'react-router-dom';
 import ImageModal from '../components/ImageModal';
+import { PACKAGE_ID, PROOF_TYPE } from '../constants';
 
 const ProfilePage: React.FC = () => {
     const account = useCurrentAccount();
@@ -18,7 +19,7 @@ const ProfilePage: React.FC = () => {
         'getOwnedObjects',
         {
             owner: account?.address || '',
-            filter: { StructType: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::MediaProof' },
+            filter: { StructType: PROOF_TYPE },
             options: { showContent: true, showDisplay: true, showType: true },
         },
         { enabled: !!account }
@@ -61,10 +62,10 @@ const ProfilePage: React.FC = () => {
     const handleBurn = (item: any) => {
         const tx = new Transaction();
 
-        if (item.objectType.includes('0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7')) {
+        if (item.objectType.includes(PACKAGE_ID)) {
             // New contract: Burn it
             tx.moveCall({
-                target: '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7::truth_lens::burn',
+                target: `${PACKAGE_ID}::truth_lens::burn`,
                 arguments: [tx.object(item.id)],
             });
         } else {
