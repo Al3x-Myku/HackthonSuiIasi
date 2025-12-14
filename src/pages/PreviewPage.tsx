@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
@@ -10,6 +10,49 @@ const PreviewPage: React.FC = () => {
     const [isMinting, setIsMinting] = useState(false);
     const { mutate: signAndExecuteTransaction } = useSignAndExecuteTransaction();
     const account = useCurrentAccount();
+
+    // AI Detection State
+    const [aiResult, setAiResult] = useState<{ isFake: boolean; label: string } | null>(null);
+    const [isDetecting, setIsDetecting] = useState(false);
+    const [detectionError, setDetectionError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (blob) {
+            runAiDetection(blob);
+        }
+    }, [blob]);
+
+    const runAiDetection = async (imageBlob: Blob) => {
+        setIsDetecting(true);
+        setDetectionError(null);
+        try {
+            const formData = new FormData();
+            formData.append('image', imageBlob);
+
+            // Expecting the API to be running locally on port 5000
+            const response = await fetch('http://localhost:5000/detect', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Detection service unavailable');
+            }
+
+            const data = await response.json();
+            setAiResult({
+                isFake: data.is_fake,
+                label: data.label,
+                // user requested NOT to show confidence level, so we don't store/display it
+            });
+
+        } catch (err) {
+            console.error('AI Detection failed:', err);
+            setDetectionError('Could not verify image authenticity (Is the AI Service running?)');
+        } finally {
+            setIsDetecting(false);
+        }
+    };
 
     if (!imageSrc) {
         navigate('/camera');
@@ -47,7 +90,6 @@ const PreviewPage: React.FC = () => {
 
             // 2. Mint NFT
             const tx = new Transaction();
-            // Address of the deployed contract
             // Address of the deployed contract
             const PACKAGE_ID = '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7';
 
@@ -104,6 +146,37 @@ const PreviewPage: React.FC = () => {
 
                     {/* Details & Actions */}
                     <div className="flex flex-col gap-6 justify-center">
+                        {/* AI Detection Result */}
+                        <div className={`p-4 rounded-2xl border ${isDetecting ? 'border-gray-500/30 bg-gray-500/10' :
+                                detectionError ? 'border-yellow-500/30 bg-yellow-500/10' :
+                                    aiResult?.isFake ? 'border-red-500/30 bg-red-500/10' :
+                                        'border-green-500/30 bg-green-500/10'
+                            }`}>
+                            <h3 className="text-sm font-bold uppercase tracking-wider mb-2 flex items-center gap-2">
+                                <span className="material-symbols-outlined">
+                                    {isDetecting ? 'radar' : detectionError ? 'warning' : aiResult?.isFake ? 'error' : 'verified_user'}
+                                </span>
+                                AI Detection
+                            </h3>
+
+                            {isDetecting ? (
+                                <div className="text-sm text-gray-300 animate-pulse">Scanning image for AI artifacts...</div>
+                            ) : detectionError ? (
+                                <div className="text-xs text-yellow-200">{detectionError}</div>
+                            ) : (
+                                <div>
+                                    <div className={`text-lg font-bold ${aiResult?.isFake ? 'text-red-400' : 'text-green-400'}`}>
+                                        {aiResult?.label}
+                                    </div>
+                                    <div className="text-xs text-gray-400 mt-1">
+                                        {aiResult?.isFake
+                                            ? "This image contains artifacts consistent with generative AI."
+                                            : "Our ensemble model classifies this as a real photograph."}
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+
                         <div className="p-6 rounded-2xl bg-surface-dark border border-white/5">
                             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">Cryptographic Proof</h3>
                             <div className="space-y-4">
@@ -144,7 +217,7 @@ const PreviewPage: React.FC = () => {
 
                         <button
                             onClick={handleMint}
-                            disabled={isMinting}
+                            disabled={isMinting || isDetecting}
                             className="w-full py-4 bg-primary hover:bg-primary-hover text-white font-bold rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             {isMinting ? (

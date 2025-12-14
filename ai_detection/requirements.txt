@@ -13,3 +13,5 @@ joblib>=1.3.0
 PyWavelets>=1.4.0  # For PRNU sensor fingerprint extraction
 ftfy
 regex
+flask
+flask-cors
