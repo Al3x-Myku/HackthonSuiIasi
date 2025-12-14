@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
 import { Transaction } from '@mysten/sui/transactions';
+import { PACKAGE_ID } from '../constants';
 
 const PreviewPage: React.FC = () => {
     const location = useLocation();
@@ -91,8 +92,7 @@ const PreviewPage: React.FC = () => {
 
             // 2. Mint NFT
             const tx = new Transaction();
-            // Address of the deployed contract
-            const PACKAGE_ID = '0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7';
+            // Address of the deployed contract is imported from constants
 
             tx.moveCall({
                 target: `${PACKAGE_ID}::truth_lens::mint_proof`,
