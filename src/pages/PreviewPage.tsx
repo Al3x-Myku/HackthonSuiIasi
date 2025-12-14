@@ -1,14 +1,8 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-import { useCurrentAccount, useSignAndExecuteTransaction } from "@mysten/dapp-kit";
-import { Transaction } from "@mysten/sui/transactions";
-
-type NavState = {
-  imageSrc?: string;
-  hash?: string;
-  blob?: Blob;
-  location?: string;
-};
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useCurrentAccount, useSignAndExecuteTransaction } from '@mysten/dapp-kit';
+import { Transaction } from '@mysten/sui/transactions';
+import { PACKAGE_ID } from '../constants';
 
 const PreviewPage: React.FC = () => {
   const routerLocation = useLocation();
@@ -98,42 +92,66 @@ const PreviewPage: React.FC = () => {
         body: blob,
       });
 
-      if (!response.ok) {
-        throw new Error(`Walrus upload failed: ${response.status} ${response.statusText}`);
-      }
+    const handleMint = async () => {
+        if (!account) return;
+        setIsMinting(true);
 
-      const data = await response.json();
-      let blobId: string | undefined;
+        try {
+            // 1. Upload to Walrus
+            // Use the publisher node for uploads with the correct /v1/blobs endpoint
+            const response = await fetch('https://publisher.walrus-testnet.walrus.space/v1/blobs?epochs=5', {
+                method: 'PUT',
+                body: blob,
+            });
 
-      if (data.newlyCreated?.blobObject?.blobId) blobId = data.newlyCreated.blobObject.blobId;
-      else if (data.alreadyCertified?.blobId) blobId = data.alreadyCertified.blobId;
+            if (!response.ok) {
+                throw new Error(`Walrus upload failed: ${response.status} ${response.statusText}`);
+            }
 
-      if (!blobId) {
-        console.error("Unexpected Walrus response:", data);
-        throw new Error("Invalid response from Walrus");
-      }
+            const data = await response.json();
 
-      const tx = new Transaction();
-      const PACKAGE_ID = "0x296c6caf0f41bebafa00148f9417a9d3cf43d61e32925606fef950938d51bef7";
+            // Handle different response structures if necessary, but standard is newlyCreated.blobObject.blobId
+            let blobId;
+            if (data.newlyCreated && data.newlyCreated.blobObject && data.newlyCreated.blobObject.blobId) {
+                blobId = data.newlyCreated.blobObject.blobId;
+            } else if (data.alreadyCertified && data.alreadyCertified.blobId) {
+                blobId = data.alreadyCertified.blobId;
+            } else {
+                console.error("Unexpected Walrus response:", data);
+                throw new Error("Invalid response from Walrus");
+            }
 
-      tx.moveCall({
-        target: `${PACKAGE_ID}::truth_lens::mint_proof`,
-        arguments: [
-          tx.pure.string(hash),
-          tx.pure.string(blobId),
-          tx.pure.u64(Date.now()),
-          tx.pure.string(gpsLocation || "Unknown Location"),
-          tx.pure.string("Webcam"),
-          tx.pure.string("Captured via TruthLens"),
-        ],
-      });
+            // 2. Mint NFT
+            const tx = new Transaction();
+            // Address of the deployed contract is imported from constants
 
-      signAndExecuteTransaction(
-        { transaction: tx },
-        {
-          onSuccess: () => navigate("/", { replace: true }),
-          onError: (err) => {
-            console.error("Minting failed:", err);
+            tx.moveCall({
+                target: `${PACKAGE_ID}::truth_lens::mint_proof`,
+                arguments: [
+                    tx.pure.string(hash),          // image_hash
+                    tx.pure.string(blobId),        // blob_id
+                    tx.pure.u64(Date.now()),       // timestamp
+                    tx.pure.string(gpsLocation || 'Unknown Location'), // location
+                    tx.pure.string('Webcam'),      // device_type
+                    tx.pure.string('Captured via TruthLens'), // description
+                ],
+            });
+
+            signAndExecuteTransaction({
+                transaction: tx,
+            }, {
+                onSuccess: () => {
+                    console.log('Minted successfully');
+                    navigate('/');
+                },
+                onError: (err) => {
+                    console.error('Minting failed:', err);
+                    setIsMinting(false);
+                }
+            });
+
+        } catch (error) {
+            console.error('Error minting:', error);
             setIsMinting(false);
           },
         }
