@@ -343,18 +343,18 @@ class EnsembleDetector:
                 if local_score > 0.60:
                     final_score = nano_score
                 else:
-                    final_score = ufd_score
+                    final_score = local_score * 0.5
             # 3. Moderate Nano (>0.6)
             elif nano_score > 0.6:
                 if local_score > 0.70:
                     final_score = nano_score
                 else:
-                    final_score = ufd_score
-            # 4. UFD
-            elif ufd_score > 0.5:
+                    final_score = local_score * 0.5
+            # 4. UFD (Require Local Confirmation)
+            elif ufd_score > 0.5 and local_score > 0.65:
                 final_score = ufd_score
             else:
-                final_score = max(ufd_score, nano_score * 0.5) # Fallback
+                final_score = local_score # Fallback to Local Model
             
         return final_score, ufd_score, local_score, nano_score, lnp_score, ela_score
 
