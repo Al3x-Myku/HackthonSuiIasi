@@ -396,7 +396,9 @@ class EnsembleDetector:
                 elif ufd_score > 0.5:
                     print("   🔍 Evidence: Detected by UniversalFakeDetect (General Anomaly)")
             else:
-                if ufd_score < 0.1 and nano_score < 0.3:
+                if nano_score > 0.6:
+                    print("   🔍 Evidence: Moderate artifacts detected (Possible Compression or Editing)")
+                elif ufd_score < 0.1 and nano_score < 0.3:
                     print("   🔍 Evidence: Confirmed Real by Multiple Models")
                 else:
                     print("   🔍 Evidence: No significant anomalies detected")
